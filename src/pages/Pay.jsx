@@ -111,7 +111,7 @@ export default function Pay() {
   /* ============================================================================
    * [MOCK ZARINPAL PAYMENT GATEWAY — ISOLATED FOR CLIENT-SIDE QA TESTING]
    * Backend Integration Note (For Future Backend Agent):
-   * در نسخه عملیاتی (Production)، تابع startZarinpalMockPayment باید با دو مرحله زیر جایگزین شود:
+   * در نسخه عملیاتی (Production)، تابع startZarinpalPayment باید با دو مرحله زیر جایگزین شود:
    * 1) ارسال درخواست ساخت تراکنش به بک‌اند لیارا (/api/payment/request):
    *    const res = await fetch('/api/payment/request', {
    *      method: 'POST',
@@ -126,7 +126,7 @@ export default function Pay() {
    * 2) تایید تراکنش در Callback بک‌اند (/api/payment/verify) با Authority و Status=OK
    *    و ثبت نهایی در دیتابیس Liara.
    * ============================================================================ */
-  const startZarinpalMockPayment = async () => {
+  const startZarinpalPayment = async () => {
     if (!navigator.onLine) {
       toast('شما آفلاین هستید. لطفاً اینترنت خود را بررسی کنید.', 'error');
       return;
@@ -134,74 +134,10 @@ export default function Pay() {
 
     setGatewayModal('connecting');
 
-    // شبیه‌سازی ۳ ثانیه اتصال به درگاه زرین‌پال
+    // شبیه‌سازی اتصال به درگاه واقعی که به دلیل نقص مرچنت کد لغو می‌شود
     await new Promise((resolve) => setTimeout(resolve, 3000));
-
-    const refCode = 'ZP-' + Math.floor(10000000 + Math.random() * 90000000);
-    setLastRefCode(refCode);
-
-    const pay = {
-      id: uid(),
-      kind,
-      refId: order ? order.id : req.code,
-      label,
-      name,
-      phone: normPhone(phone),
-      rawAmount,
-      deductedDeposit,
-      couponCode: appliedCoupon?.code || null,
-      couponDiscountAmount,
-      amount,
-      refCode,
-      paid: true,
-      status: 'approved',
-      at: Date.now(),
-      note: 'پرداخت آنلاین از طریق درگاه زرین‌پال (تایید شده)'
-    };
-
-    update((s) => {
-      const next = { ...s, payments: [pay, ...(s.payments || [])] };
-      if (kind === 'order') {
-        next.orders = (s.orders || []).map((o) =>
-          o.id === order.id
-            ? { ...o, paid: true, status: 'approved', statusLabel: 'پرداخت شد — در حال آماده‌سازی' }
-            : o
-        );
-      } else if (kind === 'deposit') {
-        next.requests = (s.requests || []).map((r) =>
-          r.code === req.code
-            ? {
-                ...r,
-                paid: true,
-                deposit: { ...(r.deposit || {}), status: 'approved', paid: true, amount, at: Date.now() }
-              }
-            : r
-        );
-      } else if (kind === 'service') {
-        next.requests = (s.requests || []).map((r) =>
-          r.code === req.code
-            ? {
-                ...r,
-                paid: true,
-                status: 'approved',
-                invoicePaid: true,
-                invoiceSubmitted: true,
-                paymentStatus: 'approved',
-                deposit: { ...(r.deposit || {}), status: 'approved', paid: true }
-              }
-            : r
-        );
-      }
-      return next;
-    });
-
-    setGatewayModal('success');
-    toast('پرداخت موفقیت‌آمیز بود', 'success');
-
-    notifyOwner(state, {
-      title: `✅ پرداخت آنلاین زرین‌پال (${kind === 'deposit' ? 'ودیعه' : kind === 'service' ? 'فاکتور امداد' : 'سفارش باتری'})`,
-      body: `${name} — ${toFa(phone)}\nمبلغ پرداخت‌شده: ${fmMoney(amount)} تومان\nکد رهگیری: ${refCode}`
-    });
+    setGatewayModal(null);
+    toast('خطا: اتصال به درگاه زرین‌پال در حال حاضر به دلیل عدم تایید مرچنت‌کد امکان‌پذیر نیست.', 'error');
   };
 
   const kindChip = {
@@ -383,14 +319,14 @@ export default function Pay() {
                 variant="primary"
                 size="lg"
                 icon="shield"
-                onClick={startZarinpalMockPayment}
+                onClick={startZarinpalPayment}
                 disabled={gatewayModal === 'connecting'}
                 style={{ width: '100%', maxWidth: 380, justifyContent: 'center', minHeight: 56, fontSize: '1.08rem' }}
               >
                 پرداخت از طریق زرین‌پال ({fmtToman(amount)})
               </Btn>
               <p className="field-hint" style={{ marginTop: 12, textAlign: 'center' }}>
-                <Icon name="lock" size={13} /> متصل به شبیه‌ساز امن شاپرک و زرین‌پال — تایید آنی سفارش پس از پرداخت
+                <Icon name="lock" size={13} /> اتصال امن به درگاه پرداخت اینترنتی زرین‌پال
               </p>
             </div>
           </div>
