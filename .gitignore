@@ -1,0 +1,11 @@
+node_modules/
+dist/
+dist-single/
+*.local
+.DS_Store
+test*.mjs
+s-*.png
+o-*.png
+f-*.png
+امداد-باتری-چابهار.html
+.env
