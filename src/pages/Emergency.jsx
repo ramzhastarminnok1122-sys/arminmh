@@ -109,6 +109,7 @@ export default function Emergency() {
   };
 
   const submit = () => {
+    if (!navigator.onLine) { toast('شما آفلاین هستید. لطفاً اینترنت خود را بررسی کنید.', 'error'); return; }
     if (offline) { toast('در حال حاضر امکان ثبت درخواست نیست؛ با شماره امداد تماس بگیرید.', 'error'); return; }
     if (limitBlocked) { toast('سقف درخواست‌های شما پر است؛ برای موارد فوری با شماره امداد تماس بگیرید.', 'error'); return; }
     if (!valid[0] || !valid[1] || !valid[2]) { setTouched(true); return; }
