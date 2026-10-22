@@ -69,13 +69,17 @@ export default function Track() {
   const depApproved = req && (req.deposit?.status === 'approved' || req.deposit?.status === 'waived' || depPayment?.status === 'approved');
   const depPending = req && req.deposit?.status === 'pending';
   const invoicePayment = payments.find((p) => p.kind === 'service');
-  const invoicePaid = req && (req.invoicePaid || invoicePayment?.status === 'approved');
+  const invoicePaid = req && (req.invoicePaid || req.paid || req.status === 'approved' || invoicePayment?.status === 'approved');
   const rawInvoice = req?.report ? (req.report.price || 0) : 0;
-  const invoiceRemaining = rawInvoice > 0 && (req.deposit?.status === 'approved' || depPayment?.status === 'approved')
-    ? Math.max(0, rawInvoice - (dep.amount || 0))
+  const invoiceRemaining = rawInvoice > 0 && (req.deposit?.status === 'approved' || req.deposit?.paid || depPayment?.status === 'approved')
+    ? Math.max(0, rawInvoice - (dep.amount || 80000))
     : rawInvoice;
 
   const sendMsg = () => {
+    if (!navigator.onLine) {
+      toast('شما آفلاین هستید. لطفاً اینترنت خود را بررسی کنید.', 'error');
+      return;
+    }
     if (!msg.trim() || !req) return;
     const text = msg.trim();
     update((s) => ({

@@ -13,6 +13,10 @@ export default function Contact() {
   const valid = form.name.trim().length >= 3 && isMobile(form.phone) && form.text.trim().length >= 10;
 
   const send = () => {
+    if (!navigator.onLine) {
+      toast('شما آفلاین هستید. لطفاً اینترنت خود را بررسی کنید.', 'error');
+      return;
+    }
     if (!valid) { setTouched(true); return; }
     update((st) => ({
       ...st,
