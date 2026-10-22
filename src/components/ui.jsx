@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { cn, toFa, phoneError } from '../lib/utils';
-import { useStore } from '../lib/store';
+import { cn, toFa, phoneError, fmtToman, countdown } from '../lib/utils';
+import { useStore, LABEL } from '../lib/store';
 
 /* ---------------- Icons (stroke, consistent set) ---------------- */
 const P = {
@@ -40,6 +40,7 @@ const P = {
   whatsapp: <><path d="M12 3.6a8.4 8.4 0 0 0-7.2 12.7L3.6 20.4l4.2-1.1A8.4 8.4 0 1 0 12 3.6Z" /><path d="M9.2 8.6c-.5.6-.8 1.7.3 3.4a9.4 9.4 0 0 0 3.3 3c1.5.7 2.3.4 2.9-.1l.4-.9-2-1.2-.9.7a5.5 5.5 0 0 1-2.1-2.1l.7-.9-1.2-2-.9.2Z" /></>,
   instagram: <><rect x="3.4" y="3.4" width="17.2" height="17.2" rx="4.6" /><circle cx="12" cy="12" r="4" /><path d="M17.2 6.8h.01" /></>,
   telegram: <path d="m20.7 4.2-17 6.5c-.9.3-.9 1.5 0 1.8l4.3 1.4 1.6 4.9c.3.8 1.3 1 1.9.3l2.3-2.5 4.4 3.2c.7.5 1.7.1 1.9-.7L22.2 5.2c.2-.8-.7-1.3-1.5-1Zm-11 9.1 8.6-5.9-6.9 6.7-.3 3-1.4-3.8Z" />,
+  send: <><path d="M22 2 11 13" /><path d="m22 2-7 20-4-9-9-4 20-7Z" /></>,
   logout: <><path d="M9.5 4.5H5.8a1.8 1.8 0 0 0-1.8 1.8v11.4a1.8 1.8 0 0 0 1.8 1.8h3.7M15.5 16.5 20 12l-4.5-4.5M20 12H9.5" /></>,
   home: <path d="m3.8 10.4 8.2-6.8 8.2 6.8V20a1.4 1.4 0 0 1-1.4 1.4h-4v-6.2h-5.6v6.2h-4A1.4 1.4 0 0 1 3.8 20v-9.6Z" />,
   grid: <><rect x="3.4" y="3.4" width="7" height="7" rx="1.5" /><rect x="13.6" y="3.4" width="7" height="7" rx="1.5" /><rect x="3.4" y="13.6" width="7" height="7" rx="1.5" /><rect x="13.6" y="13.6" width="7" height="7" rx="1.5" /></>,
@@ -48,11 +49,12 @@ const P = {
   alert: <><path d="M12 3.6 22 20.4H2L12 3.6Z" /><path d="M12 10v4.4M12 17.3h.01" /></>,
   banknote: <><rect x="2.5" y="6" width="19" height="12" rx="2" /><circle cx="12" cy="12" r="2.6" /><path d="M6 9.5v.01M18 14.5v.01" /></>,
   sparkle: <path d="M12 3.5 13.8 9l5.5 1.8-5.5 1.8L12 18l-1.8-5.4L4.7 10.8 10.2 9 12 3.5ZM19 15.5l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8.8-2.2Z" />,
+  lock: <><rect x="4" y="11" width="16" height="10" rx="2.5" /><path d="M8 11V7a4 4 0 0 1 8 0v4" /></>,
 };
 
-export function Icon({ name, size = 20, className, strokeWidth = 1.8 }) {
+export function Icon({ name, size = 20, className, strokeWidth = 1.8, style }) {
   return (
-    <svg viewBox="0 0 24 24" width={size} height={size} className={cn('icon', className)}
+    <svg viewBox="0 0 24 24" width={size} height={size} className={cn('icon', className)} style={style}
       fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       {P[name] || P.info}
     </svg>
@@ -89,11 +91,10 @@ export function Badge({ tone = 'gray', children, className, dot }) {
   return <span className={cn('badge', `badge-${tone}`, className)}>{dot && <i className="badge-dot" />}{children}</span>;
 }
 
-const STATUS_TONE = { new: 'blue', reviewing: 'amber', assigned: 'violet', enroute: 'brand', arrived: 'green', done: 'gray' };
+const STATUS_TONE = { new: 'blue', reviewing: 'amber', assigned: 'violet', enroute: 'brand', arrived: 'green', done: 'gray', approved: 'green' };
 export function StatusBadge({ status }) {
   return <Badge tone={STATUS_TONE[status] || 'gray'} dot>{LABEL[status] || status}</Badge>;
 }
-import { LABEL } from '../lib/store';
 
 export function Stars({ n = 5, size = 14 }) {
   return (
@@ -103,15 +104,74 @@ export function Stars({ n = 5, size = 14 }) {
   );
 }
 
+/* ---------------- Dual-state Price (قیمت خط‌خورده + قیمت نهایی رنگ برند) ---------------- */
 export function Price({ value, old, size = '' }) {
   return (
     <span className={cn('price', size && `price-${size}`)}>
-      {value != null ? <b>{fmtToman(value)}</b> : <b>تماس بگیرید</b>}
-      {old ? <s>{fmtToman(old)}</s> : null}
+      {old && Number(old) > Number(value || 0) ? (
+        <s className="price-old" style={{ textDecoration: 'line-through', color: 'var(--muted-2)' }}>{fmtToman(old)}</s>
+      ) : null}
+      {value != null ? (
+        <b className="price-new" style={{ color: 'var(--brand)' }}>{fmtToman(value)}</b>
+      ) : (
+        <b>تماس بگیرید</b>
+      )}
     </span>
   );
 }
-import { fmtToman } from '../lib/utils';
+
+/* ---------------- Live Countdown Timer (روز : ساعت : دقیقه : ثانیه) ---------------- */
+export function LiveCountdown({ end, compact = false }) {
+  const [ms, setMs] = useState(() => Number(end || 0) - Date.now());
+  useEffect(() => {
+    setMs(Number(end || 0) - Date.now());
+    const iv = setInterval(() => setMs(Number(end || 0) - Date.now()), 1000);
+    return () => clearInterval(iv);
+  }, [end]);
+
+  const c = countdown(ms);
+  if (!c) return <span className="expired">مهلت تمام شد</span>;
+
+  const pad = (n) => toFa(String(n).padStart(2, '0'));
+
+  if (compact) {
+    return (
+      <span className="countdown" aria-label="زمان باقی‌مانده">
+        <b>{pad(c.d)}<small>روز</small></b>
+        <span className="cd-sep">:</span>
+        <b>{pad(c.h)}<small>ساعت</small></b>
+        <span className="cd-sep">:</span>
+        <b>{pad(c.m)}<small>دقیقه</small></b>
+        <span className="cd-sep">:</span>
+        <b>{pad(c.s)}<small>ثانیه</small></b>
+      </span>
+    );
+  }
+
+  return (
+    <div className="countdown-live" aria-label="تایمر معکوس زنده">
+      <div className="cd-unit">
+        <b>{pad(c.d)}</b>
+        <span>روز</span>
+      </div>
+      <span className="cd-colon">:</span>
+      <div className="cd-unit">
+        <b>{pad(c.h)}</b>
+        <span>ساعت</span>
+      </div>
+      <span className="cd-colon">:</span>
+      <div className="cd-unit">
+        <b>{pad(c.m)}</b>
+        <span>دقیقه</span>
+      </div>
+      <span className="cd-colon">:</span>
+      <div className="cd-unit cd-sec">
+        <b>{pad(c.s)}</b>
+        <span>ثانیه</span>
+      </div>
+    </div>
+  );
+}
 
 export function SectionHead({ kicker, title, desc, center, action }) {
   return (
@@ -137,8 +197,8 @@ export function Empty({ icon = 'search', title, desc, action }) {
   );
 }
 
-export function Skeleton({ w = '100%', h = 16, r = 10, className }) {
-  return <span className={cn('sk', className)} style={{ width: w, height: h, borderRadius: r }} />;
+export function Skeleton({ w = '100%', h = 16, r = 10, className, style }) {
+  return <span className={cn('sk', className)} style={{ width: w, height: h, borderRadius: r, ...style }} />;
 }
 
 /* ---------------- Reveal on scroll ---------------- */
@@ -216,7 +276,7 @@ export function Modal({ open, onClose, title, children, footer, width = 560 }) {
       <div className="modal" style={{ maxWidth: width }} role="dialog" aria-modal="true">
         <div className="modal-head">
           <h3>{title}</h3>
-          <button className="icon-btn" onClick={onClose} aria-label="بستن"><Icon name="x" size={18} /></button>
+          {onClose && <button className="icon-btn" onClick={onClose} aria-label="بستن"><Icon name="x" size={18} /></button>}
         </div>
         <div className="modal-body">{children}</div>
         {footer && <div className="modal-foot">{footer}</div>}
@@ -253,7 +313,7 @@ export function ToastHost() {
 }
 
 /* ---------------- fake loading hook (skeletons) ---------------- */
-export function useFakeLoad(ms = 450) {
+export function useFakeLoad(ms = 320) {
   const [loading, setLoading] = useState(true);
   useEffect(() => { const t = setTimeout(() => setLoading(false), ms); return () => clearTimeout(t); }, [ms]);
   return loading;

@@ -2,7 +2,7 @@ import imgBatteryDefault from '../../assets/images/battery-product.jpg';
 import React, { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useStore } from '../../lib/store';
-import { Btn, Icon, Modal, Confirm, Field, Switch, Badge, Stars, Empty } from '../../components/ui';
+import { Btn, Icon, Modal, Confirm, Field, Switch, Badge, Stars, Empty, LiveCountdown } from '../../components/ui';
 import { ICON_CHOICES } from '../../lib/seed';
 import { cn, toFa, dt, uid, fmtToman } from '../../lib/utils';
 
@@ -29,21 +29,37 @@ const MODULES = {
     ]
   },
   offers: {
-    coll: 'offers', title: 'آفرها', desc: 'تخفیف‌ها و پیشنهادهای ویژه — انقضا به‌صورت خودکار محاسبه می‌شود',
-    defaults: { title: '', desc: '', image: '', oldPrice: null, newPrice: null, start: Date.now(), end: Date.now() + 7 * 86400000, active: true },
+    coll: 'offers',
+    title: 'آفرها، کدهای تخفیف و تایمر معکوس',
+    desc: 'تخفیف‌های هوشمند با کد تخفیف اختصاصی و تایمر معکوس زنده تا تاریخ انقضا',
+    defaults: {
+      title: '',
+      desc: '',
+      code: 'CHB20',
+      discountPercent: 15,
+      image: '',
+      oldPrice: null,
+      newPrice: null,
+      start: Date.now(),
+      end: Date.now() + 7 * 86400000,
+      active: true
+    },
     schema: [
       { key: 'title', label: 'عنوان آفر', type: 'text', required: true },
+      { key: 'code', label: 'کد تخفیف (مثلاً CHB15)', type: 'text', required: true, hint: 'کاربر با وارد کردن این کد در فروشگاه یا درگاه، تخفیف می‌گیرد' },
+      { key: 'discountPercent', label: 'درصد تخفیف (٪)', type: 'number', hint: 'مثلاً: ۱۵' },
       { key: 'desc', label: 'توضیح', type: 'textarea', full: true },
       { key: 'image', label: 'تصویر', type: 'image', full: true },
-      { key: 'oldPrice', label: 'قیمت قبل (اختیاری)', type: 'number' },
-      { key: 'newPrice', label: 'قیمت بعد (اختیاری)', type: 'number' },
+      { key: 'oldPrice', label: 'قیمت اصلی قبل از تخفیف (خط‌خورده)', type: 'number' },
+      { key: 'newPrice', label: 'قیمت پس از تخفیف (تومان)', type: 'number' },
       { key: 'start', label: 'تاریخ شروع', type: 'datetime' },
-      { key: 'end', label: 'تاریخ پایان', type: 'datetime', required: true },
+      { key: 'end', label: 'تاریخ انقضا (تایمر معکوس)', type: 'datetime', required: true },
       { key: 'active', label: 'فعال', type: 'switch' }
     ],
     columns: [
-      { key: 'title', label: 'عنوان', bold: true },
-      { key: 'end', label: 'پایان', type: 'date' },
+      { key: 'title', label: 'عنوان آفر', bold: true },
+      { key: 'code', label: 'کد تخفیف', type: 'code' },
+      { key: 'end', label: 'تایمر معکوس تا انقضا', type: 'countdown' },
       { key: 'end', label: 'وضعیت زمانی', type: 'expiring' },
       { key: 'active', label: 'فعال', type: 'active' }
     ]
@@ -70,7 +86,7 @@ const MODULES = {
     ]
   },
   batteries: {
-    coll: 'batteries', title: 'فروشگاه و قیمت‌گذاری', desc: 'باتری‌ها و قیمت‌ها — هیچ قیمتی در کد ثابت نیست؛ تغییر قیمت در «تاریخچه» ثبت می‌شود',
+    coll: 'batteries', title: 'فروشگاه و قیمت‌گذاری', desc: 'باتری‌ها و قیمت‌های دوحالته (قیمت اصلی خط‌خورده + قیمت فروش) — تغییر قیمت در «تاریخچه» ثبت می‌شود',
     defaults: { brand: '', model: '', capacity: 60, cca: 500, type: 'سیلد (MF)', warranty: 12, price: 0, oldPrice: null, stock: 'in', suitable: '', image: imgBatteryDefault, active: true },
     schema: [
       { key: 'brand', label: 'برند', type: 'text', required: true },
@@ -79,8 +95,8 @@ const MODULES = {
       { key: 'cca', label: 'جریان استارت (CCA)', type: 'number' },
       { key: 'type', label: 'نوع', type: 'select', options: ['اسیدی', 'سیلد (MF)', 'AGM', 'ژل'] },
       { key: 'warranty', label: 'گارانتی (ماه)', type: 'number' },
-      { key: 'price', label: 'قیمت فروش (تومان)', type: 'number', required: true },
-      { key: 'oldPrice', label: 'قیمت قبل از تخفیف (اختیاری)', type: 'number' },
+      { key: 'price', label: 'قیمت فروش پس از تخفیف (تومان)', type: 'number', required: true },
+      { key: 'oldPrice', label: 'قیمت اصلی قبل از تخفیف — خط‌خورده (تومان)', type: 'number' },
       { key: 'stock', label: 'موجودی', type: 'select', options: [['in', 'موجود'], ['low', 'آخرین موجودی'], ['out', 'ناموجود']] },
       { key: 'suitable', label: 'مناسب برای', type: 'text', full: true },
       { key: 'image', label: 'تصویر', type: 'image', full: true },
@@ -90,7 +106,7 @@ const MODULES = {
       { key: 'image', label: '', type: 'thumb' },
       { key: 'brand', label: 'برند / مدل', bold: true, join: 'model' },
       { key: 'capacity', label: 'آمپر', type: 'amp' },
-      { key: 'price', label: 'قیمت', type: 'price' },
+      { key: 'price', label: 'قیمت فروش / قیمت قبل', type: 'price' },
       { key: 'stock', label: 'موجودی', type: 'stock' },
       { key: 'active', label: 'فعال', type: 'active' }
     ],
@@ -98,12 +114,12 @@ const MODULES = {
   },
   technicians: {
     coll: 'technicians', title: 'امدادگران فعال', desc: 'تیم اعزام — وضعیت آنلاین بودن، منطقه سرویس، عملکرد و رمز ورود به پنل امدادگر',
-    defaults: { name: '', phone: '', zone: '', rating: 5, completed: 0, online: true, color: '#1e6bff', password: '1234' },
+    defaults: { name: '', phone: '', zone: '', rating: 5, completed: 0, online: true, color: '#1e6bff', password: '123' },
     schema: [
       { key: 'name', label: 'نام امدادگر', type: 'text', required: true },
       { key: 'phone', label: 'شماره تماس', type: 'text', required: true },
       { key: 'zone', label: 'منطقه سرویس‌دهی', type: 'text', full: true },
-      { key: 'password', label: 'رمز ورود به پنل امدادگر', type: 'text', hint: 'با همین رمز، امدادگر وارد /tech/login می‌شود' },
+      { key: 'password', label: 'رمز ورود به پنل امدادگر', type: 'text', hint: 'با همین رمز، امدادگر وارد /tech/login می‌شود (مثلاً: 123)' },
       { key: 'rating', label: 'امتیاز (از ۵)', type: 'number' },
       { key: 'completed', label: 'سرویس‌های تکمیل‌شده', type: 'number' },
       { key: 'color', label: 'رنگ نشان', type: 'select', options: [['#1e6bff', 'آبی'], ['#17b26a', 'سبز'], ['#ffb800', 'زرد'], ['#ee3a2c', 'قرمز'], ['#8b5cf6', 'بنفش']] },
@@ -175,7 +191,7 @@ const MODULES = {
 
 export default function Crud({ moduleKey }) {
   const mod = MODULES[moduleKey];
-  const { state, upsert, remove, patch, toast } = useStore();
+  const { state, upsert, remove, toast } = useStore();
   const [sp, setSp] = useSearchParams();
   const [editing, setEditing] = useState(null);
   const [deleting, setDeleting] = useState(null);
@@ -188,7 +204,7 @@ export default function Crud({ moduleKey }) {
   const savePriceInline = (it) => {
     const val = Number(priceEdit.val);
     if (!val || val === it.price) { setPriceEdit(null); return; }
-    upsert('batteries', { ...it, price: val });
+    upsert('batteries', { ...it, oldPrice: it.price > val ? it.price : it.oldPrice, price: val });
     upsert('priceHistory', { id: uid(), batteryId: it.id, label: `${it.brand} ${it.model}`, at: Date.now(), old: it.price, price: val });
     setPriceEdit(null);
     toast('قیمت تغییر کرد و در تاریخچه ثبت شد.');
@@ -199,9 +215,13 @@ export default function Crud({ moduleKey }) {
   }, [sp]);
 
   const save = () => {
-    const e = editing;
+    const e = { ...editing };
     for (const f of mod.schema) {
       if (f.required && (e[f.key] === '' || e[f.key] == null)) { setTouched(true); return; }
+    }
+    if (mod.coll === 'offers') {
+      e.code = String(e.code || 'CHB15').trim().toUpperCase();
+      e.expiresAt = new Date(Number(e.end || Date.now())).toISOString();
     }
     if (mod.coll === 'batteries') {
       const old = (state.batteries || []).find((b) => b.id === e.id);
@@ -226,7 +246,9 @@ export default function Crud({ moduleKey }) {
           <Btn variant="primary" icon="plus" onClick={() => { setTouched(false); setEditing({ ...mod.defaults }); }}>افزودن مورد جدید</Btn>
         </div>
 
-        {items.length === 0 ? <Empty icon="info" title="موردی ثبت نشده" action={<Btn variant="dark" icon="plus" onClick={() => setEditing({ ...mod.defaults })}>اولین مورد را اضافه کنید</Btn>} /> : (
+        {items.length === 0 ? (
+          <Empty icon="info" title="موردی ثبت نشده" action={<Btn variant="dark" icon="plus" onClick={() => setEditing({ ...mod.defaults })}>اولین مورد را اضافه کنید</Btn>} />
+        ) : (
           <div className="tbl-wrap">
             <table className="tbl">
               <thead>
@@ -239,22 +261,34 @@ export default function Crud({ moduleKey }) {
                 {items.map((it) => (
                   <tr key={it.id}>
                     {mod.columns.map((c, i) => {
-                      // ویرایش سریع قیمت (فروشگاه)
                       if (mod.history && c.type === 'price') {
                         return (
                           <td key={i}>
                             {priceEdit?.id === it.id ? (
                               <span style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                                <input className="input" style={{ width: 130, padding: '5px 10px' }} type="number" autoFocus value={priceEdit.val}
+                                <input
+                                  className="input"
+                                  style={{ width: 130, padding: '5px 10px' }}
+                                  type="number"
+                                  autoFocus
+                                  value={priceEdit.val}
                                   onChange={(e) => setPriceEdit({ id: it.id, val: e.target.value })}
-                                  onKeyDown={(e) => e.key === 'Enter' && savePriceInline(it)} />
+                                  onKeyDown={(e) => e.key === 'Enter' && savePriceInline(it)}
+                                />
                                 <button className="icon-btn" onClick={() => savePriceInline(it)} aria-label="ذخیره"><Icon name="check" size={15} /></button>
                               </span>
                             ) : (
-                              <button className="price-quick" onClick={() => setPriceEdit({ id: it.id, val: it.price })} title="کلیک: ویرایش سریع قیمت">
-                                <b>{fmtToman(it.price)}</b>
-                                <Icon name="edit" size={13} />
-                              </button>
+                              <div>
+                                <button className="price-quick" onClick={() => setPriceEdit({ id: it.id, val: it.price })} title="کلیک: ویرایش سریع قیمت">
+                                  <b style={{ color: 'var(--brand)' }}>{fmtToman(it.price)}</b>
+                                  <Icon name="edit" size={13} />
+                                </button>
+                                {it.oldPrice && (
+                                  <div>
+                                    <s style={{ textDecoration: 'line-through', color: '#94a3b8', fontSize: '0.76rem' }}>{fmtToman(it.oldPrice)}</s>
+                                  </div>
+                                )}
+                              </div>
                             )}
                           </td>
                         );
@@ -277,14 +311,23 @@ export default function Crud({ moduleKey }) {
       </div>
 
       {/* Edit/Create modal */}
-      <Modal open={!!editing} onClose={() => setEditing(null)} width={620}
+      <Modal
+        open={!!editing}
+        onClose={() => setEditing(null)}
+        width={620}
         title={editing?.id ? `ویرایش — ${mod.title}` : `افزودن — ${mod.title}`}
-        footer={<><Btn variant="ghost" onClick={() => setEditing(null)}>انصراف</Btn><Btn variant="primary" icon="check" onClick={save}>ذخیره</Btn></>}>
+        footer={<><Btn variant="ghost" onClick={() => setEditing(null)}>انصراف</Btn><Btn variant="primary" icon="check" onClick={save}>ذخیره</Btn></>}
+      >
         {editing && (
           <div className="form-grid">
             {mod.schema.map((f) => (
-              <FieldWrapper key={f.key} f={f} value={editing[f.key]} touched={touched}
-                onChange={(v) => setEditing((p) => ({ ...p, [f.key]: v }))} />
+              <FieldWrapper
+                key={f.key}
+                f={f}
+                value={editing[f.key]}
+                touched={touched}
+                onChange={(v) => setEditing((p) => ({ ...p, [f.key]: v }))}
+              />
             ))}
           </div>
         )}
@@ -310,8 +353,12 @@ export default function Crud({ moduleKey }) {
         })()}
       </Modal>
 
-      <Confirm open={!!deleting} onClose={() => setDeleting(null)} onConfirm={() => { remove(mod.coll, deleting.id); toast('حذف شد.'); }}
-        text={`«${deleting?.title || deleting?.name || deleting?.q || deleting?.brand || 'این مورد'}» حذف شود؟`} />
+      <Confirm
+        open={!!deleting}
+        onClose={() => setDeleting(null)}
+        onConfirm={() => { remove(mod.coll, deleting.id); toast('حذف شد.'); }}
+        text={`«${deleting?.title || deleting?.name || deleting?.q || deleting?.brand || 'این مورد'}» حذف شود؟`}
+      />
     </>
   );
 }
@@ -320,9 +367,11 @@ export default function Crud({ moduleKey }) {
 function Cell({ c, it }) {
   const v = c.join ? `${it[c.key]} ${it[c.join]}` : it[c.key];
   switch (c.type) {
-    case 'icon': return <td><span className="svc-ic" style={{ width: 38, height: 38, borderRadius: 11 }}><Icon name={v} size={18} /></span></td>;
+    case 'icon': return <td><span className="svc-ic" style={{ width: 38, height: 38, borderRadius: 11, margin: 0 }}><Icon name={v} size={18} /></span></td>;
     case 'thumb': return <td>{v ? <img src={v} alt="" style={{ width: 58, height: 40, objectFit: 'cover', borderRadius: 8 }} /> : '—'}</td>;
     case 'date': return <td style={{ fontSize: '.83rem', color: 'var(--muted)' }}>{dt(v)}</td>;
+    case 'code': return <td><Badge tone="brand">{v || '—'} {it.discountPercent ? `(${toFa(it.discountPercent)}٪)` : ''}</Badge></td>;
+    case 'countdown': return <td><LiveCountdown end={v} compact /></td>;
     case 'expiring': return <td>{v > Date.now() ? <Badge tone="green">در جریان</Badge> : <Badge tone="red">منقضی</Badge>}</td>;
     case 'active': return <td>{v ? <Badge tone="green">فعال</Badge> : <Badge tone="gray">غیرفعال</Badge>}</td>;
     case 'price': return <td><b>{fmtToman(v)}</b></td>;
@@ -349,10 +398,12 @@ function FieldWrapper({ f, value, onChange, touched }) {
       {f.type === 'select' && (() => {
         const opts = f.options || [];
         if (f.creatable) {
-          return (<>
-            <input {...common} list={`list-${f.key}`} />
-            <datalist id={`list-${f.key}`}>{opts.map((o) => <option key={o} value={o} />)}</datalist>
-          </>);
+          return (
+            <>
+              <input {...common} list={`list-${f.key}`} />
+              <datalist id={`list-${f.key}`}>{opts.map((o) => <option key={o} value={o} />)}</datalist>
+            </>
+          );
         }
         const isPairs = opts.length > 0 && Array.isArray(opts[0]);
         return (
@@ -384,7 +435,10 @@ function ImageField({ value, onChange }) {
       <label className="upload-box">
         <Icon name="image" size={22} />
         <div>برای انتخاب تصویر کلیک کنید (یا آدرس را پایین وارد کنید)</div>
-        <input type="file" accept="image/*" style={{ display: 'none' }}
+        <input
+          type="file"
+          accept="image/*"
+          style={{ display: 'none' }}
           onChange={(e) => {
             const file = e.target.files?.[0];
             if (!file) return;
@@ -392,7 +446,8 @@ function ImageField({ value, onChange }) {
             const r = new FileReader();
             r.onload = () => onChange(r.result);
             r.readAsDataURL(file);
-          }} />
+          }}
+        />
       </label>
       <input className="input" style={{ marginTop: 8 }} value={typeof value === 'string' ? value : ''} onChange={(e) => onChange(e.target.value)} placeholder="/images/… یا آدرس اینترنتی تصویر" />
     </div>

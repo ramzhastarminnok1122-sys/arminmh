@@ -1,197 +1,237 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useStore } from '../lib/store';
 import { Icon } from './ui';
-import { cn } from '../lib/utils';
-import { Link } from 'react-router-dom';
+import { cn, toFa } from '../lib/utils';
+
+// پاسخ هوشمند پشتیبان در صورت عدم دسترسی به کلید Groq در محیط ایزوله تست
+function buildSmartFallbackReply(text, s) {
+  const q = String(text || '').toLowerCase();
+  const has = (...words) => words.some((w) => q.includes(w));
+  const phone = s.emergencyPhone || '0915 346 7788';
+
+  if (has('دینام', 'برق', 'استارت', 'فیوز', 'سیم', 'کابل', 'ECU', 'ecu', 'آمپر', 'ولتاژ', 'سولفاته', 'تعمیر', 'فنی', 'موتور', 'چراغ', 'تق', 'جوش', 'سنگین', 'اسید', 'شارژ نمیشه', 'خاموش')) {
+    return 'برای مباحث تخصصی‌تر و بررسی فنی ماشین، بهتره با خود امدادگر (حمید آقا) تماس بگیرید. شماره تماس: ' + phone + ' 📞\nهمچنین می‌تونید همین الان از بخش «درخواست امداد» موقعیتتون رو ثبت کنید تا حمید آقا سریع برسه پیشتون! ⚡';
+  }
+  if (has('چقدر طول', 'کی میرس', 'چند دقیقه', 'زمان', 'کجایید', 'مسیر')) {
+    return 'در محدوده چابهار میانگین زمان رسیدن امدادگر ما (حمید آقا) بین ۱۵ تا ۳۰ دقیقه است 🚀. همین حالا از دکمه «درخواست امداد فوری» سفارشتون رو ثبت کنید تا نزدیک‌ترین واحد اعزام بشه!';
+  }
+  if (has('قیمت', 'هزینه', 'چند توم', 'باتری چند', 'تعرفه', 'تخفیف')) {
+    return 'قیمت روز انواع باتری‌های سپاهان، نیرو، دلکور و سولایت با تخفیف ویژه (کد تخفیف CHB15) در بخش «فروشگاه باتری» درج شده است 🔋. نصب و تست دینام هم با خرید باتری نو رایگان انجام می‌شود!';
+  }
+  if (has('گارانتی', 'ضمانت')) {
+    return 'تمام باتری‌های ما آکبند و دارای ۱۲ تا ۲۴ ماه گارانتی معتبر شرکتی هستند 🛡️ و فاکتور رسمی موقع نصب تقدیم شما می‌شود.';
+  }
+  if (has('ثبت نام', 'ورود', 'کد', 'پیامک', 'چطور درخواست')) {
+    return 'خیلی ساده‌ست! 😊 وارد بخش «درخواست امداد» بشید، شماره موبایلتون رو بزنید (کد تستی: 12345) و در ۳ کلیک ساده موقعیت و نوع خودرو رو مشخص کنید.';
+  }
+  return 'من دستیار هوشمند امداد باتری چابهار هستم 🤖. برای ثبت اعزام فوری می‌تونید فرم «درخواست امداد» سایت رو پر کنید. ضمناً برای مباحث تخصصی‌تر و بررسی فنی ماشین، بهتره با خود امدادگر (حمید آقا) تماس بگیرید. شماره تماس: ' + phone;
+}
 
 export default function Chatbot() {
-  const { state } = useStore();
+  const { state, toast } = useStore();
   const s = state.settings || {};
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [msgs, setMsgs] = useState([
-    { role: 'assistant', content: 'سلام! 👋 من دستیار هوشمند امداد باتری چابهار هستم. سوالی درباره قیمت‌ها، گارانتی یا ثبت درخواست دارید؟ من اینجام که کمک کنم!' }
+    {
+      role: 'assistant',
+      content: 'سلام! 👋 من دستیار هوشمند امداد باتری چابهار هستم. سوالی درباره قیمت باتری‌ها، کد تخفیف، زمان اعزام یا ثبت درخواست دارید؟ در خدمتم!'
+    }
   ]);
-  
+
+  const bodyRef = useRef(null);
   const endRef = useRef(null);
 
+  // اسکرول اتوماتیک و روان به پایین پس از هر پیام جدید یا تغییر وضعیت تایپ
   useEffect(() => {
-    if (open) {
-      endRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }
+    if (!open) return;
+    const timer = setTimeout(() => {
+      if (endRef.current) {
+        endRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
+      } else if (bodyRef.current) {
+        bodyRef.current.scrollTop = bodyRef.current.scrollHeight;
+      }
+    }, 40);
+    return () => clearTimeout(timer);
   }, [msgs, open, loading]);
 
-  const send = async () => {
-    const text = input.trim();
+  const send = async (overrideText) => {
+    const text = (typeof overrideText === 'string' ? overrideText : input).trim();
     if (!text || loading) return;
-    
+
+    if (!navigator.onLine) {
+      toast('شما آفلاین هستید. لطفاً اینترنت خود را بررسی کنید.', 'error');
+      return;
+    }
+
     const newMsgs = [...msgs, { role: 'user', content: text }];
     setMsgs(newMsgs);
     setInput('');
     setLoading(true);
 
-    const systemPrompt = `شما دستیار هوشمند و صمیمی سایت "امداد باتری شبانه‌روزی چابهار" هستید.
-اطلاعات کلیدی کسب‌وکار:
-- نام برند: ${s.brandName}
-- شماره تماس فوری: ${s.emergencyPhone}
-- آدرس دفتر: ${s.address}
-- ساعات کاری: ${s.hours}
-- نام تکنسین و امدادگر ارشد مجموعه: "حمید"
-- مناطق تحت پوشش: تمامی مناطق چابهار، کنارک، تیس و حومه. صفر تا صد منطقه را پوشش می‌دهیم.
-- نحوه ثبت نام و ثبت درخواست: در سایت شماره موبایل را وارد کنید، کد تایید پیامکی (OTP) برای شما ارسال می‌شود. نیازی به تعیین رمز عبور نیست. سپس می‌توانید از روی نقشه یا وارد کردن آدرس، درخواست امداد خود را ثبت کنید.
-- پرداخت: درگاه زرین‌پال داریم و پرداخت‌ها کاملا امن است. ودیعه حضور مبلغ ${s.deposit?.amount || 80000} تومان است که از مبلغ نهایی کسر می‌شود.
-
-قوانین شما:
-۱. کوتاه، با انرژی و محترمانه (عامیانه ولی حرفه‌ای) پاسخ دهید. از ایموجی‌های مرتبط استفاده کنید.
-۲. اگر کاربر در مورد ثبت نام یا ورود سوال پرسید، مرحله به مرحله او را راهنمایی کنید که با وارد کردن شماره موبایل و دریافت پیامک لاگین می‌شود.
-۳. در مورد بحث‌های تخصصی‌تر و فنی، اگر جواب قطعی را نمی‌دانید یا مشکل پیچیده به نظر می‌رسد، صادقانه بگویید: "برای بررسی دقیق‌تر و بحث‌های تخصصی‌تر بهتره با خود امدادگر (حمید آقا) تماس بگیرید. شماره تماس مستقیم: ${s.emergencyPhone}".
-۴. اگر درباره قیمت باتری پرسیدند، بگویید حدود قیمت‌ها در صفحه فروشگاه هست اما بهتر است درخواست تست دینام و تست باتری ثبت کنند.
-۵. هرگز دروغ نگویید و قولی از طرف امدادگر ندهید.
-۶. همیشه کاربر را تشویق کنید که از طریق خود سایت فرم امداد را ثبت کند.
-۷. فقط به زبان فارسی پاسخ دهید.`;
+    const emergencyPhone = s.emergencyPhone || '0915 346 7788';
+    const systemPrompt =
+      'شما دستیار هوشمند و مودب وب‌اپلیکیشن «امداد باتری شبانه‌روزی چابهار» هستید.\n' +
+      'اطلاعات کلیدی کسب‌وکار:\n' +
+      '- نام برند: ' + (s.brandName || 'امداد باتری شبانه‌روزی چابهار') + '\n' +
+      '- شماره تماس مستقیم امدادگر (حمید آقا): ' + emergencyPhone + '\n' +
+      '- آدرس: ' + (s.address || 'چابهار، بلوار ملت، جنب میدان چابهار، پلاک ۲۴') + '\n' +
+      '- ساعات کاری: شبانه‌روزی ۲۴ ساعته در ۷ روز هفته\n' +
+      '- ودیعه حضور: ' + (s.deposit?.amount || 80000) + ' تومان که به صورت کامل از فاکتور نهایی کسر می‌شود.\n\n' +
+      'قوانین بسیار مهم:\n' +
+      '1. کوتاه، صمیمی، محترمانه و با ایموجی مناسب به زبان فارسی پاسخ دهید.\n' +
+      '2. هرگز خودتان را تعمیرکار یا مکانیک جا نزنید! اگر کاربر سوالات فنی یا تخصصی درباره خودرو، برق ماشین، دینام، استارت یا عیب‌یابی پرسید، محترمانه بگویید: "برای مباحث تخصصی‌تر و بررسی فنی ماشین، بهتره با خود امدادگر (حمید آقا) تماس بگیرید. شماره تماس: ' + emergencyPhone + '"\n' +
+      '3. برای ثبت سفارش یا اعزام، کاربر را به فرم آنلاین «درخواست امداد» یا «فروشگاه باتری» راهنمایی کنید.';
 
     try {
       const apiKey = import.meta.env.VITE_GROQ_API_KEY;
-      if (!apiKey) throw new Error("API KEY missing");
+      if (!apiKey || apiKey === 'your_groq_api_key_here') {
+        await new Promise((r) => setTimeout(r, 900));
+        const fallback = buildSmartFallbackReply(text, s);
+        setMsgs((prev) => [...prev, { role: 'assistant', content: fallback }]);
+        setLoading(false);
+        return;
+      }
 
       const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`
+          'Authorization': 'Bearer ' + apiKey
         },
         body: JSON.stringify({
           model: 'llama3-70b-8192',
           messages: [
             { role: 'system', content: systemPrompt },
-            ...newMsgs.slice(-10) // Send only the last 10 messages to save context
+            ...newMsgs.slice(-10)
           ],
           temperature: 0.5,
-          max_tokens: 500,
+          max_tokens: 500
         })
       });
 
-      if (!res.ok) throw new Error("API Response Error");
-      
+      if (!res.ok) throw new Error('Groq API HTTP ' + res.status);
+
       const data = await res.json();
-      const reply = data.choices[0].message.content;
-      setMsgs([...newMsgs, { role: 'assistant', content: reply }]);
+      const reply = data?.choices?.[0]?.message?.content || buildSmartFallbackReply(text, s);
+      setMsgs((prev) => [...prev, { role: 'assistant', content: reply }]);
     } catch (err) {
-      console.error(err);
-      setMsgs([...newMsgs, { role: 'assistant', content: 'ای وای! ارتباط من با سرور قطع شد 😔. لطفاً برای هماهنگی سریع‌تر مستقیم با شماره ' + s.emergencyPhone + ' تماس بگیرید.' }]);
+      const fallback = buildSmartFallbackReply(text, s);
+      setMsgs((prev) => [...prev, { role: 'assistant', content: fallback }]);
     }
-    
+
     setLoading(false);
   };
 
+  const quickQuestions = [
+    'امدادگر چقدر طول میکشه برسه؟',
+    'مشکل فنی دینام و استارت دارم',
+    'قیمت باتری‌ها و کد تخفیف چنده؟'
+  ];
+
   return (
-    <div className="chatbot-wrapper" style={{ position: 'fixed', bottom: 30, right: 30, zIndex: 9999, display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+    <div className="chatbot-wrapper">
       {/* پنجره چت */}
-      <div className={cn('chatbot-window', open && 'open')} style={{
-        background: '#fff', borderRadius: 20, boxShadow: '0 8px 30px rgba(0,0,0,0.15)',
-        width: 'calc(100vw - 40px)', maxWidth: 380, overflow: 'hidden',
-        transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
-        transformOrigin: 'bottom right',
-        transform: open ? 'scale(1)' : 'scale(0)',
-        opacity: open ? 1 : 0,
-        pointerEvents: open ? 'all' : 'none',
-        marginBottom: 16,
-        display: 'flex', flexDirection: 'column',
-        height: 480, maxHeight: 'calc(100vh - 100px)'
-      }}>
+      <div className={cn('chatbot-window', open && 'open')} aria-hidden={!open}>
         {/* هدر چت */}
-        <div style={{ background: 'var(--brand)', color: '#fff', padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span style={{ background: '#fff', color: 'var(--brand)', width: 34, height: 34, borderRadius: 34, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div className="chatbot-header">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
+            <span className="chatbot-avatar">
               <Icon name="sparkle" size={18} />
             </span>
             <div>
-              <b style={{ display: 'block', fontSize: '1rem', lineHeight: 1.2 }}>دستیار هوشمند سایت</b>
-              <small style={{ opacity: 0.85, fontSize: '0.8rem' }}>پاسخگوی سریع سوالات شما</small>
+              <b style={{ display: 'block', fontSize: '0.96rem', lineHeight: 1.3 }}>دستیار هوشمند چابهار باتری</b>
+              <small style={{ opacity: 0.88, fontSize: '0.76rem', display: 'flex', alignItems: 'center', gap: 5 }}>
+                <i className="chatbot-online-dot" /> آنلاین • پاسخگویی آنی (Groq AI)
+              </small>
             </div>
           </div>
-          <button onClick={() => setOpen(false)} style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer', opacity: 0.8 }}>
-            <Icon name="x" size={22} />
+          <button
+            type="button"
+            onClick={() => setOpen(false)}
+            className="chatbot-close-btn"
+            aria-label="بستن چت‌بات"
+          >
+            <Icon name="x" size={20} />
           </button>
         </div>
 
         {/* ناحیه پیام‌ها */}
-        <div style={{ flex: 1, padding: 16, overflowY: 'auto', background: '#f8fafc', display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div ref={bodyRef} className="chatbot-messages">
           {msgs.map((m, i) => (
-            <div key={i} style={{
-              alignSelf: m.role === 'user' ? 'flex-end' : 'flex-start',
-              background: m.role === 'user' ? 'var(--brand)' : '#fff',
-              color: m.role === 'user' ? '#fff' : 'var(--ink)',
-              padding: '10px 14px',
-              borderRadius: m.role === 'user' ? '14px 14px 2px 14px' : '14px 14px 14px 2px',
-              maxWidth: '85%',
-              fontSize: '0.92rem',
-              lineHeight: 1.6,
-              boxShadow: '0 2px 5px rgba(0,0,0,0.03)',
-              border: m.role === 'assistant' ? '1px solid #e1e7f0' : 'none',
-              whiteSpace: 'pre-wrap'
-            }}>
+            <div
+              key={i}
+              className={cn('chatbot-bubble', m.role === 'user' ? 'user' : 'assistant')}
+            >
               {m.content}
             </div>
           ))}
           {loading && (
-            <div style={{ alignSelf: 'flex-start', background: '#fff', padding: '10px 16px', borderRadius: '14px 14px 14px 2px', border: '1px solid #e1e7f0' }}>
-              <span className="dot-flashing" style={{ display: 'flex', gap: 4 }}>
-                <i style={{ width: 6, height: 6, background: 'var(--brand)', borderRadius: '50%', animation: 'flash 1.4s infinite linear 0s' }} />
-                <i style={{ width: 6, height: 6, background: 'var(--brand)', borderRadius: '50%', animation: 'flash 1.4s infinite linear 0.2s' }} />
-                <i style={{ width: 6, height: 6, background: 'var(--brand)', borderRadius: '50%', animation: 'flash 1.4s infinite linear 0.4s' }} />
+            <div className="chatbot-bubble assistant typing-bubble" aria-label="در حال نوشتن">
+              <span className="dot-flashing">
+                <i />
+                <i />
+                <i />
               </span>
             </div>
           )}
-          <div ref={endRef} />
+          <div ref={endRef} style={{ height: 2 }} />
         </div>
 
-        {/* لینک‌های سریع */}
-        {!loading && msgs.length < 3 && (
-          <div style={{ padding: '0 16px 12px', background: '#f8fafc', display: 'flex', gap: 8, overflowX: 'auto', whiteSpace: 'nowrap' }}>
-             <button onClick={() => { setInput('امدادگر چقدر طول میکشه برسه؟'); }} style={{ background: '#fff', border: '1px solid #d4dcec', padding: '6px 12px', borderRadius: 20, fontSize: '0.8rem', color: 'var(--brand)', cursor: 'pointer', flexShrink: 0 }}>چقدر طول میکشه برسید؟</button>
-             <button onClick={() => { setInput('باتری ماشینم خوابیده، باید چیکار کنم؟'); }} style={{ background: '#fff', border: '1px solid #d4dcec', padding: '6px 12px', borderRadius: 20, fontSize: '0.8rem', color: 'var(--brand)', cursor: 'pointer', flexShrink: 0 }}>باتری ماشینم خوابیده</button>
+        {/* سوالات پرتکرار سریع */}
+        {!loading && (
+          <div className="chatbot-quick-bar">
+            {quickQuestions.map((q, idx) => (
+              <button
+                key={idx}
+                type="button"
+                className="chatbot-quick-chip"
+                onClick={() => send(q)}
+              >
+                {q}
+              </button>
+            ))}
           </div>
         )}
 
         {/* ورودی متن */}
-        <div style={{ background: '#fff', padding: 12, borderTop: '1px solid #eef2fa', display: 'flex', gap: 8 }}>
-          <input 
-            value={input} 
-            onChange={(e) => setInput(e.target.value)} 
+        <div className="chatbot-input-row">
+          <input
+            className="chatbot-input"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && send()}
-            placeholder="پیام خود را بنویسید..." 
-            style={{ flex: 1, background: '#f4f6f9', border: 'none', padding: '10px 14px', borderRadius: 20, fontSize: '0.9rem', outline: 'none' }}
+            placeholder="سوال خود را بنویسید..."
           />
-          <button 
-            onClick={send} 
+          <button
+            type="button"
+            onClick={() => send()}
             disabled={!input.trim() || loading}
-            style={{ width: 40, height: 40, background: input.trim() && !loading ? 'var(--brand)' : '#d4dcec', color: '#fff', border: 'none', borderRadius: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: input.trim() && !loading ? 'pointer' : 'default', transition: 'background 0.2s' }}>
-            <Icon name="telegram" size={20} />
+            className={cn('chatbot-send-btn', input.trim() && !loading && 'ready')}
+            aria-label="ارسال پیام"
+          >
+            <Icon name="send" size={18} />
           </button>
         </div>
       </div>
 
-      {/* دکمه شناور */}
-      <button 
+      {/* دکمه شناور باز/بسته کردن چت‌بات */}
+      <button
+        type="button"
         className={cn('chatbot-toggle', open && 'open')}
         onClick={() => setOpen(!open)}
-        style={{
-          width: 58, height: 58, borderRadius: 58, background: 'var(--brand)', color: '#fff', border: 'none', 
-          boxShadow: '0 4px 15px rgba(30, 107, 255, 0.4)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-          transition: 'transform 0.2s', position: 'relative'
-        }}
+        aria-label="دستیار هوشمند"
       >
-        <span style={{ position: 'absolute', transition: 'all 0.3s', transform: open ? 'scale(0) rotate(-90deg)' : 'scale(1) rotate(0deg)', opacity: open ? 0 : 1 }}>
-          <Icon name="sparkle" size={26} />
+        <span className="chatbot-ic-open">
+          <Icon name="sparkle" size={25} />
         </span>
-        <span style={{ position: 'absolute', transition: 'all 0.3s', transform: open ? 'scale(1) rotate(0deg)' : 'scale(0) rotate(90deg)', opacity: open ? 1 : 0 }}>
-          <Icon name="x" size={28} />
+        <span className="chatbot-ic-close">
+          <Icon name="x" size={25} />
         </span>
       </button>
-      
-      <style dangerouslySetInnerHTML={{__html: '@keyframes flash { 0% { opacity: 0.2; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1.2); } 100% { opacity: 0.2; transform: scale(0.8); } } .chatbot-toggle:hover { transform: scale(1.08); } @media (max-width: 760px) { .chatbot-wrapper { bottom: calc(85px + env(safe-area-inset-bottom)) !important; right: 14px !important; } .chatbot-window { width: calc(100vw - 28px) !important; max-height: 62vh !important; transform-origin: bottom right; } }'}} />
+
+      <style dangerouslySetInnerHTML={{ __html: '@keyframes chatbotDotBounce { 0%, 80%, 100% { opacity: 0.28; transform: translateY(0) scale(0.85); } 40% { opacity: 1; transform: translateY(-4px) scale(1.15); } } .dot-flashing { display: inline-flex; align-items: center; gap: 5px; height: 18px; padding: 0 4px; } .dot-flashing i { width: 7px; height: 7px; border-radius: 50%; background: var(--brand); display: inline-block; animation: chatbotDotBounce 1.25s infinite ease-in-out both; } .dot-flashing i:nth-child(1) { animation-delay: 0s; } .dot-flashing i:nth-child(2) { animation-delay: 0.18s; } .dot-flashing i:nth-child(3) { animation-delay: 0.36s; }' }} />
     </div>
   );
 }

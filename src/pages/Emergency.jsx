@@ -117,6 +117,7 @@ export default function Emergency() {
     const vehicle = g ? { brand: g.brand, model: g.model, year: g.year || '' } : { brand: f.brand, model: f.model, year: '' };
     const code = reqCode();
     const check = ai?.result || aiCheckLocation({ desc: f.loc.desc, point: picked ? { x: f.loc.x, y: f.loc.y } : null, areas: state.areas.filter((a) => a.active) });
+    const defaultTech = (state.technicians || []).find((t) => t.online) || (state.technicians || [])[0];
     const req = {
       id: uid(), code, name: acct.name, phone: acct.phone,
       problem: f.problem, vehicle,
@@ -124,10 +125,10 @@ export default function Emergency() {
       declaration: declT,
       aiCheck: { confidence: check.confidence, area: check.area, flags: check.flags },
       vehCheck: veh ? { modelState: veh.modelState, suggestion: veh.suggestion, override: modelOverride } : null,
-      deposit: dep.enabled && dep.amount > 0 ? { status: 'pending' } : { status: 'waived' },
+      deposit: dep.enabled && dep.amount > 0 ? { status: 'pending', amount: dep.amount } : { status: 'waived', amount: 0 },
       status: 'new', createdAt: Date.now(),
       timeline: [{ status: 'new', at: Date.now() }],
-      technicianId: null, travel: 150 + Math.floor(Math.random() * 90),
+      technicianId: defaultTech ? defaultTech.id : 'tc1', travel: 150 + Math.floor(Math.random() * 90),
       manualHold: false, internalNotes: [], report: null, chat: []
     };
     update((st) => {
