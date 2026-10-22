@@ -32,7 +32,7 @@
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; }
+html { scroll-behavior: smooth; width: 100%; overflow-x: hidden; }
 body {
   font-family: var(--ff);
   background: var(--bg);
@@ -828,7 +828,7 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: 0.9rem; min-width
   input, select, textarea, button { font-size: 16px; } /* جلوگیری از زوم خودکار iOS */
   h1 { font-size: clamp(1.45rem, 6.4vw, 2rem); }
   h2 { font-size: clamp(1.15rem, 4.8vw, 1.4rem); }
-  .page { padding-bottom: 96px; } /* جا برای نوار پایین */
+  .page { padding-bottom: 160px; } /* جا برای نوار پایین */
   .page-head { padding-top: 8px; }
   .page-head p { font-size: .88rem; }
 
@@ -866,7 +866,7 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: 0.9rem; min-width
 
   /* فرم‌ها و کارت‌ها */
   .wiz-card { padding: 20px 16px; border-radius: 18px; }
-  .wiz-nav { position: sticky; bottom: 76px; background: linear-gradient(180deg, transparent, var(--surface) 30%); padding-top: 10px; margin-top: 6px; }
+  .wiz-nav { position: relative; background: linear-gradient(180deg, transparent, var(--surface) 30%); padding-top: 10px; margin-top: 6px; }
   .wiz-nav .btn { min-height: 50px; }
   .summary-box .sum-row { flex-direction: column; align-items: flex-start; gap: 2px; padding: 10px 0; }
   .summary-box .sum-row b { text-align: start !important; font-size: .92rem; }

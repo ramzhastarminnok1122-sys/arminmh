@@ -20,7 +20,11 @@ export default function Auth() {
 
   const set = (p) => setF((prev) => ({ ...prev, ...p }));
 
-  const sendOtp = () => {
+  const sendOtp = async () => {
+    if (!navigator.onLine) {
+      setErr('شما به اینترنت متصل نیستید. لطفا اتصال خود را بررسی کنید.');
+      return;
+    }
     if (!isMobile(f.phone)) {
       setErr('شماره موبایل معتبر (با پیش‌شماره اپراتورهای ایران) وارد کنید');
       return;
