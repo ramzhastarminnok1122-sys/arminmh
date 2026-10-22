@@ -50,7 +50,7 @@ function migrate(s) {
   };
 }
 
-function load() {
+function loadLocal() {
   try {
     const raw = localStorage.getItem(KEY);
     if (raw) {
@@ -119,7 +119,37 @@ function simulate(s) {
 }
 
 export function StoreProvider({ children }) {
-  const [state, setState] = useState(load);
+  const [state, setState] = useState(loadLocal());
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  // Fetch initial state from remote server
+  useEffect(() => {
+    fetch('/api/db')
+      .then(r => r.json())
+      .then(remoteState => {
+        if (remoteState && remoteState.__v) {
+          setState(migrate(remoteState));
+        }
+        setIsLoaded(true);
+      })
+      .catch(e => {
+        console.warn('Failed to fetch remote DB, falling back to local', e);
+        setIsLoaded(true);
+      });
+  }, []);
+
+  // Save to remote server whenever state changes
+  useEffect(() => {
+    if (!isLoaded) return;
+    try { 
+      localStorage.setItem(KEY, JSON.stringify(state)); 
+      fetch('/api/db', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(state)
+      }).catch(e => console.warn('Failed to save to remote DB', e));
+    } catch (e) { /* ignore */ }
+  }, [state, isLoaded]);
   const [toasts, setToasts] = useState([]);
 
   const toast = (msg, type = 'success') => {
@@ -202,22 +232,31 @@ export function StoreProvider({ children }) {
     };
   };
 
-  useEffect(() => {
-    try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { /* ignore */ }
-  }, [state]);
 
-  // همگام‌سازی زنده بین تب‌های همان مرورگر
+
+
+  // Background polling to sync across devices (every 10 seconds)
   useEffect(() => {
-    const onStorage = (e) => {
-      if (e.key !== KEY || !e.newValue) return;
-      try {
-        const next = JSON.parse(e.newValue);
-        if (next && next.__v) setState((prev) => (JSON.stringify(prev) === e.newValue ? prev : next));
-      } catch (err) { /* ignore */ }
-    };
-    window.addEventListener('storage', onStorage);
-    return () => window.removeEventListener('storage', onStorage);
-  }, []);
+    if (!isLoaded) return;
+    const interval = setInterval(() => {
+      fetch('/api/db')
+        .then(r => r.json())
+        .then(remoteState => {
+          if (remoteState && remoteState.__v) {
+            setState(prev => {
+              // Only update if remote is materially different (very basic check)
+              const prevStr = JSON.stringify(prev);
+              const remoteStr = JSON.stringify(remoteState);
+              return prevStr !== remoteStr ? migrate(remoteState) : prev;
+            });
+          }
+        })
+        .catch(() => {});
+    }, 10000);
+    return () => clearInterval(interval);
+  }, [isLoaded]);
+
+  
 
   useEffect(() => {
     const iv = setInterval(() => setState((prev) => simulate(prev)), 4000);
