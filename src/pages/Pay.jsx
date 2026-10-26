@@ -111,7 +111,7 @@ export default function Pay() {
   /* ============================================================================
    * [MOCK ZARINPAL PAYMENT GATEWAY — ISOLATED FOR CLIENT-SIDE QA TESTING]
    * Backend Integration Note (For Future Backend Agent):
-   * در نسخه عملیاتی (Production)، تابع startZarinpalPayment باید با دو مرحله زیر جایگزین شود:
+   * در نسخه عملیاتی (Production)، تابع startZibalPayment باید با دو مرحله زیر جایگزین شود:
    * 1) ارسال درخواست ساخت تراکنش به بک‌اند لیارا (/api/payment/request):
    *    const res = await fetch('/api/payment/request', {
    *      method: 'POST',
@@ -126,7 +126,7 @@ export default function Pay() {
    * 2) تایید تراکنش در Callback بک‌اند (/api/payment/verify) با Authority و Status=OK
    *    و ثبت نهایی در دیتابیس Liara.
    * ============================================================================ */
-  const startZarinpalPayment = async () => {
+  const startZibalPayment = async () => {
     if (!navigator.onLine) {
       toast('شما آفلاین هستید. لطفاً اینترنت خود را بررسی کنید.', 'error');
       return;
@@ -137,7 +137,7 @@ export default function Pay() {
     // شبیه‌سازی اتصال به درگاه واقعی که به دلیل نقص مرچنت کد لغو می‌شود
     await new Promise((resolve) => setTimeout(resolve, 3000));
     setGatewayModal(null);
-    toast('خطا: اتصال به درگاه زرین‌پال در حال حاضر به دلیل عدم تایید مرچنت‌کد امکان‌پذیر نیست.', 'error');
+    toast('خطا: اتصال به درگاه زیبال در حال حاضر به دلیل عدم تایید مرچنت‌کد امکان‌پذیر نیست.', 'error');
   };
 
   const kindChip = {
@@ -151,7 +151,7 @@ export default function Pay() {
       <div className="container" style={{ maxWidth: 740 }}>
         <div className="page-head" style={{ textAlign: 'center' }}>
           <span className="kicker">{kindChip} — درگاه امن شاپرک</span>
-          <h1>درگاه پرداخت آنلاین زرین‌پال</h1>
+          <h1>درگاه پرداخت آنلاین زیبال</h1>
           <p style={{ marginInline: 'auto' }}>{label}</p>
         </div>
 
@@ -183,7 +183,7 @@ export default function Pay() {
             <Badge tone="green" dot>پرداخت موفقیت‌آمیز بود (Paid & Approved)</Badge>
             <h2 style={{ margin: '14px 0 8px', color: 'var(--navy)' }}>پرداخت شما با موفقیت ثبت و تایید شد ✅</h2>
             <p style={{ color: 'var(--muted)', fontSize: '0.94rem', marginBottom: 20 }}>
-              مبلغ <b>{fmtToman(existing.amount)}</b> از طریق درگاه زرین‌پال تسویه گردید.
+              مبلغ <b>{fmtToman(existing.amount)}</b> از طریق درگاه زیبال تسویه گردید.
               {existing.refCode && <span> کد پیگیری: <b style={{ direction: 'ltr', display: 'inline-block' }}>{existing.refCode}</b></span>}
             </p>
 
@@ -313,27 +313,27 @@ export default function Pay() {
               </div>
             )}
 
-            {/* دکمه اصلی پرداخت زرین‌پال */}
+            {/* دکمه اصلی پرداخت زیبال */}
             <div style={{ textAlign: 'center', marginTop: 10 }}>
               <Btn
                 variant="primary"
                 size="lg"
                 icon="shield"
-                onClick={startZarinpalPayment}
+                onClick={startZibalPayment}
                 disabled={gatewayModal === 'connecting'}
                 style={{ width: '100%', maxWidth: 380, justifyContent: 'center', minHeight: 56, fontSize: '1.08rem' }}
               >
-                پرداخت از طریق زرین‌پال ({fmtToman(amount)})
+                پرداخت از طریق زیبال ({fmtToman(amount)})
               </Btn>
               <p className="field-hint" style={{ marginTop: 12, textAlign: 'center' }}>
-                <Icon name="lock" size={13} /> اتصال امن به درگاه پرداخت اینترنتی زرین‌پال
+                <Icon name="lock" size={13} /> اتصال امن به درگاه پرداخت اینترنتی زیبال
               </p>
             </div>
           </div>
         )}
       </div>
 
-      {/* مودال / اورلی شیک شبیه‌ساز درگاه زرین‌پال */}
+      {/* مودال / اورلی شیک شبیه‌ساز درگاه زیبال */}
       {gatewayModal && (
         <div className="modal-ov gateway-overlay" role="dialog" aria-modal="true">
           <div className="modal gateway-modal" style={{ maxWidth: 440, textAlign: 'center', padding: '36px 28px' }}>
@@ -343,7 +343,7 @@ export default function Pay() {
                   <div className="gw-spinner" />
                   <Icon name="shield" size={28} className="gw-shield-ic" />
                 </div>
-                <span className="badge badge-amber" style={{ marginBottom: 12 }}>شاپرک • درگاه پرداخت اینترنتی زرین‌پال</span>
+                <span className="badge badge-amber" style={{ marginBottom: 12 }}>شاپرک • درگاه پرداخت اینترنتی زیبال</span>
                 <h3 style={{ fontSize: '1.3rem', marginBottom: 8, color: 'var(--navy)' }}>در حال اتصال به درگاه...</h3>
                 <p style={{ color: 'var(--muted)', fontSize: '0.92rem', marginBottom: 18 }}>
                   لطفاً شکیبا باشید؛ در حال پردازش امن تراکنش به مبلغ <b style={{ color: 'var(--brand)' }}>{fmtToman(amount)}</b> هستیم.

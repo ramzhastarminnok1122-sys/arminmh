@@ -89,7 +89,14 @@ PKG
 cat << 'LIARA' > liara_build/liara.json
 {
   "app": "emdadbattery",
-  "platform": "node"
+  "platform": "node",
+  "port": 3000,
+  "disks": [
+    {
+      "name": "data",
+      "mountTo": "data"
+    }
+  ]
 }
 LIARA
 
