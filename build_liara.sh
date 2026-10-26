@@ -14,7 +14,11 @@ const fs = require('fs');
 const app = express();
 app.use(express.json({ limit: '5mb' })); 
 
-const DB_FILE = path.join(__dirname, 'database.json');
+const DB_FILE = process.env.NODE_ENV === 'production' ? path.join(__dirname, 'data', 'database.json') : path.join(__dirname, 'database.json');
+// Ensure data dir exists if running locally or not mounted properly
+if (!fs.existsSync(path.dirname(DB_FILE))) {
+  try { fs.mkdirSync(path.dirname(DB_FILE), { recursive: true }); } catch(e){}
+}
 
 app.get('/api/db', (req, res) => {
   if (fs.existsSync(DB_FILE)) {
