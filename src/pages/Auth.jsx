@@ -66,10 +66,11 @@ export default function Auth() {
         const errorData = await res.json().catch(() => ({}));
         console.warn('SMS Failed:', errorData);
         
-        let errStr = errorData?.data?.entries?.[0]?.statustext || errorData?.error || 'نامشخص';
-        if (errorData?.data?.return?.status === 411) errStr = 'گیرنده دریافت پیامک تبلیغاتی را مسدود کرده است (بلک‌لیست).';
-        if (errorData?.data?.return?.status === 401 || errorData?.data?.return?.status === 403) errStr = 'کلید API کاوه‌نگار در لیارا نامعتبر است.';
-        toast('خطا: ' + errStr, 'error');
+        
+        let errStr = errorData?.data?.return?.message || errorData?.data?.entries?.[0]?.statustext || errorData?.error || 'ارتباط با سرور پیامک برقرار نشد';
+        if (errorData?.data?.return?.status) errStr = errStr + ' (کد خطا: ' + errorData.data.return.status + ')';
+        toast('پیام کاوه‌نگار: ' + errStr, 'error');
+
 
         setSending(false);
         return; // DO NOT PROCEED TO STEP 2 IF IT FAILS
