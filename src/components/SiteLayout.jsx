@@ -27,6 +27,7 @@ const MOBILE_NAV = [
 function SpeedDial({ phone, onMenu }) {
   const [open, setOpen] = React.useState(false);
   const items = [
+    { icon: 'sparkle', label: 'پشتیبانی هوشمند (AI)', action: () => window.dispatchEvent(new CustomEvent('open-chatbot')), cls: 'sd-amber' },
     { icon: 'phone', label: 'تماس با امداد', href: `tel:${(phone || '').replace(/\s/g, '')}`, cls: 'sd-green' },
     { icon: 'pin', label: 'پیگیری درخواست', to: '/track', cls: 'sd-blue' },
     { icon: 'menu', label: 'فهرست کامل سایت', action: onMenu, cls: 'sd-navy' }
@@ -42,7 +43,7 @@ function SpeedDial({ phone, onMenu }) {
               ? <a className={cn('sd-btn', it.cls)} href={it.href} onClick={() => setOpen(false)} aria-label={it.label}><Icon name={it.icon} size={20} /></a>
               : it.to
                 ? <Link className={cn('sd-btn', it.cls)} to={it.to} onClick={() => setOpen(false)} aria-label={it.label}><Icon name={it.icon} size={20} /></Link>
-                : <button className={cn('sd-btn', it.cls)} onClick={() => { setOpen(false); onMenu(); }} aria-label={it.label}><Icon name={it.icon} size={20} /></button>}
+                : <button className={cn('sd-btn', it.cls)} onClick={() => { setOpen(false); if (it.action) it.action(); }} aria-label={it.label}><Icon name={it.icon} size={20} /></button>}
           </span>
         ))}
       </div>

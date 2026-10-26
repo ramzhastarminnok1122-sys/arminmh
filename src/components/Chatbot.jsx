@@ -31,6 +31,11 @@ export default function Chatbot() {
   const { state, toast } = useStore();
   const s = state.settings || {};
   const [open, setOpen] = useState(false);
+  useEffect(() => {
+    const handleOpen = () => setOpen(true);
+    window.addEventListener('open-chatbot', handleOpen);
+    return () => window.removeEventListener('open-chatbot', handleOpen);
+  }, []);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [msgs, setMsgs] = useState([
@@ -217,19 +222,7 @@ export default function Chatbot() {
       </div>
 
       {/* دکمه شناور باز/بسته کردن چت‌بات */}
-      <button
-        type="button"
-        className={cn('chatbot-toggle', open && 'open')}
-        onClick={() => setOpen(!open)}
-        aria-label="دستیار هوشمند"
-      >
-        <span className="chatbot-ic-open">
-          <Icon name="sparkle" size={25} />
-        </span>
-        <span className="chatbot-ic-close">
-          <Icon name="x" size={25} />
-        </span>
-      </button>
+      
 
       <style dangerouslySetInnerHTML={{ __html: '@keyframes chatbotDotBounce { 0%, 80%, 100% { opacity: 0.28; transform: translateY(0) scale(0.85); } 40% { opacity: 1; transform: translateY(-4px) scale(1.15); } } .dot-flashing { display: inline-flex; align-items: center; gap: 5px; height: 18px; padding: 0 4px; } .dot-flashing i { width: 7px; height: 7px; border-radius: 50%; background: var(--brand); display: inline-block; animation: chatbotDotBounce 1.25s infinite ease-in-out both; } .dot-flashing i:nth-child(1) { animation-delay: 0s; } .dot-flashing i:nth-child(2) { animation-delay: 0.18s; } .dot-flashing i:nth-child(3) { animation-delay: 0.36s; }' }} />
     </div>
