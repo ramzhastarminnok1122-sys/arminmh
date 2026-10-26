@@ -63,7 +63,11 @@ export default function Auth() {
       });
 
       if (!res.ok) {
-        console.warn('Backend SMS API not fully configured or failed. Proceeding to step 2 anyway for UI flow.');
+        const errorData = await res.json().catch(() => ({}));
+        console.warn('SMS Failed:', errorData);
+        toast('خطا در ارسال پیامک: ' + (errorData?.data?.entries?.[0]?.statustext || errorData?.error || 'نامشخص'), 'error');
+        setSending(false);
+        return; // DO NOT PROCEED TO STEP 2 IF IT FAILS
       }
     } catch (e) {
       console.error('Error sending SMS:', e);
