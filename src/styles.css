@@ -209,6 +209,8 @@ h3 { font-size: 1.16rem; margin-bottom: 6px; }
   display: none;
   position: fixed;
   bottom: 0;
+  transform: translateZ(0);
+  will-change: transform;
   inset-inline: 0;
   z-index: 70;
   background: rgba(10, 18, 38, 0.82);
@@ -223,7 +225,7 @@ h3 { font-size: 1.16rem; margin-bottom: 6px; }
 .bn-item.active { color: var(--yellow); }
 .bn-em { position: relative; top: -20px; }
 .bn-em-btn { width: 62px; height: 62px; border-radius: 99px; display: grid; place-items: center; color: #fff; background: radial-gradient(circle at 30% 25%, #ff6a5e, var(--red) 65%); box-shadow: 0 12px 28px -6px rgba(238, 58, 44, 0.65), 0 0 0 6px rgba(238, 58, 44, 0.18); animation: emergencyPulse 2.4s infinite; }
-.bn-em-btn::after { content: 'امداد'; position: absolute; bottom: -19px; font-size: 0.68rem; font-weight: 800; color: #ff8d84; }
+.bn-em-btn::after { content: 'امداد'; position: absolute; bottom: -20px; left: 50%; transform: translateX(-50%); font-size: 0.72rem; font-weight: 800; color: #ff8d84; }
 @keyframes emergencyPulse { 0%, 100% { box-shadow: 0 12px 28px -6px rgba(238, 58, 44, 0.65), 0 0 0 0 rgba(238, 58, 44, 0.35); } 50% { box-shadow: 0 12px 28px -6px rgba(238, 58, 44, 0.65), 0 0 0 12px rgba(238, 58, 44, 0); } }
 
 /* ============ Footer ============ */
@@ -564,10 +566,10 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: 0.9rem; min-width
 .note-box { background: var(--yellow-soft); border: 1px solid rgba(255, 184, 0, 0.4); border-radius: 14px; padding: 14px 18px; font-size: 0.9rem; color: #7a5800; display: flex; gap: 10px; align-items: flex-start; }
 .note-box .icon { flex: none; margin-top: 5px; }
 .copy-code { display: inline-flex; align-items: center; gap: 9px; background: var(--navy); color: var(--yellow-2); padding: 8px 16px; border-radius: 13px; font-weight: 800; letter-spacing: 1.5px; direction: ltr; }
-.upload-box { border: 2px dashed var(--line-2); border-radius: 14px; padding: 18px; text-align: center; color: var(--muted); font-size: 0.88rem; transition: 0.15s; cursor: pointer; }
+.upload-box { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; border: 2px dashed var(--line-2); border-radius: 14px; padding: 24px; text-align: center; color: var(--muted); font-size: 0.88rem; transition: 0.15s; cursor: pointer; word-break: break-word; line-height: 1.5; }
 .upload-box:hover { border-color: var(--brand); color: var(--brand); background: var(--brand-soft); }
 .upload-box img { max-height: 110px; margin: 0 auto 10px; border-radius: 10px; }
-.img-preview { width: 100%; height: 120px; object-fit: cover; border-radius: 10px; margin-bottom: 8px; }
+.img-preview { width: 100%; height: auto; max-height: 200px; object-fit: contain; border-radius: 10px; margin-bottom: 12px; border: 1px solid var(--line); background: #fafafa; }
 .veh-card { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .veh-card .veh-info { display: flex; gap: 12px; align-items: center; }
 .veh-card .svc-ic { width: 44px; height: 44px; margin: 0; border-radius: 12px; }
@@ -767,8 +769,8 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: 0.9rem; min-width
 /* ============ نسخه ۳: ودیعه، باشگاه مشتریان، شماره هوشمند، نقشه گسترده ============ */
 .phone-wrap { display: flex; flex-direction: column; gap: 6px; }
 .phone-box { position: relative; }
-.phone-box .input { padding-inline-end: 44px; }
-.phone-mark { position: absolute; inset-inline-end: 13px; top: 50%; transform: translateY(-50%); display: grid; place-items: center; }
+.phone-box .input { padding-left: 44px !important; padding-right: 14px !important; text-align: left; }
+.phone-mark { position: absolute; left: 13px; right: auto; top: 50%; transform: translateY(-50%); display: grid; place-items: center; }
 .phone-mark.bad { color: var(--red); animation: shakeMark .3s; }
 .phone-mark.good { color: var(--green); }
 @keyframes shakeMark { 0%,100%{transform:translateY(-50%)} 25%{transform:translateY(-58%)} 60%{transform:translateY(-44%)} }
@@ -1449,7 +1451,7 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: 0.9rem; min-width
   transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
   margin-bottom: 16px;
   height: 520px;
-  max-height: calc(100vh - 100px);
+  max-height: 80dvh;
 }
 .chatbot-window.open {
   opacity: 1;
@@ -1634,12 +1636,20 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: 0.9rem; min-width
 }
 @media (max-width: 480px) {
   .chatbot-wrapper {
-    bottom: 16px;
+    bottom: calc(85px + env(safe-area-inset-bottom));
     right: 16px;
-    z-index: 999999; /* Ensure it's above bottom nav */
+    left: 16px;
+    align-items: center;
+    z-index: 999999;
   }
   .chatbot-window {
-    height: calc(100vh - 100px);
-    margin-bottom: 16px;
+    width: 100%;
+    max-width: 100%;
+    height: 82dvh;
+    max-height: 82dvh;
+    margin-bottom: 0;
   }
 }
+
+/* Fix checkout button overflow */
+.btn.w-full { width: 100%; box-sizing: border-box; }

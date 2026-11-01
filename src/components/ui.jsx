@@ -66,9 +66,13 @@ export function Logo({ dark = false, small = false, brand }) {
   const s = brand || {};
   return (
     <span className={cn('logo', dark && 'logo-dark', small && 'logo-sm')}>
-      <span className="logo-mark">
-        <Icon name="bolt" size={small ? 16 : 20} />
-      </span>
+      {s.logoUrl ? (
+        <img src={s.logoUrl} alt={s.brandShort || 'لوگو'} style={{ width: small ? 32 : 42, height: small ? 32 : 42, borderRadius: 10, objectFit: 'cover' }} />
+      ) : (
+        <span className="logo-mark">
+          <Icon name="bolt" size={small ? 16 : 20} />
+        </span>
+      )}
       <span className="logo-text">
         <b>{s.brandShort || 'امداد باتری چابهار'}</b>
         {!small && <small>{s.tagline || 'شبانه‌روزی، در محل شما'}</small>}

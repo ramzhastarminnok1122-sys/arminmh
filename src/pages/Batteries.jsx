@@ -314,7 +314,7 @@ export default function Batteries() {
             {/* ورودی کد تخفیف داخل مودال سفارش */}
             <div style={{ marginBottom: 16 }}>
               <label className="field-label" style={{ display: 'block', marginBottom: 6, fontSize: '0.86rem' }}>
-                کد تخفیف دارید؟ (کد فعال: <b>CHB15</b>)
+                کد تخفیف دارید؟
               </label>
               <div style={{ display: 'flex', gap: 8 }}>
                 <input
@@ -322,7 +322,7 @@ export default function Batteries() {
                   style={{ flex: 1, direction: 'ltr', textAlign: 'left', fontWeight: 700 }}
                   value={couponCode}
                   onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-                  placeholder="CHB15"
+                  placeholder="مثلاً CHB15"
                 />
                 <Btn variant="ghost" size="sm" icon="tag" onClick={() => applyOfferCode(couponCode)}>اعمال کد</Btn>
               </div>

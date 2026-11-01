@@ -121,7 +121,7 @@ export default function Emergency() {
     const req = {
       id: uid(), code, name: acct.name, phone: acct.phone,
       problem: f.problem, vehicle,
-      location: { desc: f.loc.desc || 'موقعیت انتخاب‌شده روی نقشه', x: f.loc.x || 445, y: f.loc.y || 300 },
+      location: { desc: f.loc.desc, x: f.loc.x || 445, y: f.loc.y || 300, note: f.note },
       declaration: declT,
       aiCheck: { confidence: check.confidence, area: check.area, flags: check.flags },
       vehCheck: veh ? { modelState: veh.modelState, suggestion: veh.suggestion, override: modelOverride } : null,
@@ -282,20 +282,23 @@ export default function Emergency() {
             {/* ===== مرحله ۱: موقعیت ===== */}
             {step === 1 && (
               <>
-                <div className="wiz-title"><span className="svc-ic"><Icon name="pin" size={22} /></span><div><h2>کجا هستید؟</h2><p style={{ color: 'var(--muted)', fontSize: '.9rem' }}>روی نقشه بزنید یا آدرس بنویسید — یا هر دو</p></div></div>
+                <div className="wiz-title"><span className="svc-ic"><Icon name="pin" size={22} /></span><div><h2>کجا هستید؟</h2><p style={{ color: 'var(--muted)', fontSize: '.9rem' }}>آدرس دقیق خود را برای اعزام واحد سیار بنویسید</p></div></div>
                 <div style={{ display: 'flex', gap: 10, marginBottom: 14, flexWrap: 'wrap' }}>
                   <Btn variant="dark" icon="pin" size="sm" onClick={gps}>دریافت موقعیت GPS</Btn>
                   {f.loc.desc.trim().length >= 10 && <Btn variant="ghost" icon="sparkle" size="sm" onClick={() => runAi()}>بررسی هوشمند موقعیت</Btn>}
                 </div>
-                <ChabaharMap pick theme="light" areas={state.areas.filter((a) => a.active)}
-                  userPoint={picked ? { x: f.loc.x, y: f.loc.y } : null}
-                  onPick={({ x, y }) => set({ loc: { ...f.loc, x, y } })} />
+                
                 <div style={{ marginTop: 14 }}>
                   <Field label="توضیح آدرس" hint="مثلاً: بلوار ملت، نبش کوچه ۱۲، جنب پمپ بنزین"
                     error={(touched && locErr) && locErr}>
                     <textarea className={cn('input', (touched && locErr) && 'err')} rows={2} value={f.loc.desc}
                       onChange={(e) => set({ loc: { ...f.loc, desc: e.target.value } })}
-                      placeholder="نزدیک کدام میدان یا بلوار هستید؟" />
+                      placeholder="آدرس دقیق: مثلاً بلوار ملت، نبش کوچه ۱۲" />
+                  </Field>
+                  <Field label="توضیحات تکمیلی (اختیاری)" hint="هر چیزی که امدادگر باید بداند">
+                    <textarea className="input" rows={2} value={f.note || ''}
+                      onChange={(e) => set({ note: e.target.value })}
+                      placeholder="مثلاً: ماشین روبروی سوپرمارکت پارکه، یا زنگ خراب است..." />
                   </Field>
                 </div>
                 {ai && (

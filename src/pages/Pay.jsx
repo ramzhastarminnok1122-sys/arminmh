@@ -28,6 +28,58 @@ export default function Pay() {
   const [lastRefCode, setLastRefCode] = useState('');
   const [couponInput, setCouponInput] = useState('');
   const [appliedCoupon, setAppliedCoupon] = useState(null);
+
+  useEffect(() => {
+    const isVerify = sp.get('verify') === '1';
+    const success = sp.get('success') === '1';
+    const trackId = sp.get('trackId');
+    const orderId = sp.get('orderId');
+    const vKind = sp.get('kind');
+
+    if (isVerify && trackId) {
+      if (!success) {
+        toast('پرداخت توسط کاربر لغو شد یا ناموفق بود.', 'error');
+        sp.delete('verify'); sp.delete('success'); sp.delete('trackId'); sp.delete('status');
+        setSp(sp);
+        return;
+      }
+      
+      setGatewayModal('connecting');
+      fetch('/api/zibal/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ trackId })
+      }).then(r => r.json()).then(res => {
+        if (res.ok) {
+          setLastRefCode(trackId);
+          setGatewayModal('success');
+          
+          // Update local state
+          update((s) => {
+            const ns = { ...s };
+            if (vKind === 'order' && orderId) {
+              ns.orders = ns.orders.map(o => o.id === orderId ? { ...o, status: 'paid', paymentRef: trackId, paidAt: Date.now() } : o);
+            } else if (vKind === 'deposit' && orderId) {
+              ns.requests = ns.requests.map(r => r.code === orderId ? { ...r, deposit: { ...r.deposit, status: 'paid', amount: res.data.amount/10, ref: trackId } } : r);
+            } else if (vKind === 'service' && orderId) {
+              ns.requests = ns.requests.map(r => r.code === orderId ? { ...r, invoicePaid: true, paymentRef: trackId, paidAt: Date.now() } : r);
+            }
+            return ns;
+          });
+        } else {
+          setGatewayModal(null);
+          toast('پرداخت تایید نشد (احتمالاً قبلاً تایید شده یا مبلغ مغایرت دارد).', 'error');
+        }
+      }).catch(() => {
+        setGatewayModal(null);
+        toast('خطا در ارتباط با سرور هنگام تایید پرداخت.', 'error');
+      }).finally(() => {
+        sp.delete('verify'); sp.delete('success'); sp.delete('trackId'); sp.delete('status');
+        setSp(sp);
+      });
+    }
+  }, []);
+
   const [couponErr, setCouponErr] = useState('');
 
   const existing = useMemo(() => {
@@ -126,6 +178,7 @@ export default function Pay() {
    * 2) تایید تراکنش در Callback بک‌اند (/api/payment/verify) با Authority و Status=OK
    *    و ثبت نهایی در دیتابیس Liara.
    * ============================================================================ */
+  
   const startZibalPayment = async () => {
     if (!navigator.onLine) {
       toast('شما آفلاین هستید. لطفاً اینترنت خود را بررسی کنید.', 'error');
@@ -134,11 +187,32 @@ export default function Pay() {
 
     setGatewayModal('connecting');
 
-    // شبیه‌سازی اتصال به درگاه واقعی که به دلیل نقص مرچنت کد لغو می‌شود
-    await new Promise((resolve) => setTimeout(resolve, 3000));
-    setGatewayModal(null);
-    toast('خطا: اتصال به درگاه زیبال در حال حاضر به دلیل عدم تایید مرچنت‌کد امکان‌پذیر نیست.', 'error');
+    try {
+      const orderId = (order ? order.id : req.code) || 'REQ-' + Date.now();
+      const callbackUrl = window.location.origin + '/pay?verify=1&kind=' + kind + '&orderId=' + orderId;
+      const res = await fetch('/api/zibal/request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          amount: amount * 10, // Toman to Rial
+          callbackUrl,
+          description: 'پرداخت ' + (kind === 'deposit' ? 'ودیعه امداد' : kind === 'order' ? 'سفارش باتری' : 'فاکتور'),
+          orderId
+        })
+      });
+      const data = await res.json();
+      if (data.ok && data.data && data.data.trackId) {
+        window.location.href = 'https://gateway.zibal.ir/start/' + data.data.trackId;
+      } else {
+        setGatewayModal(null);
+        toast('خطا در اتصال به زیبال: ' + (data.data?.message || data.error || 'نامشخص'), 'error');
+      }
+    } catch (e) {
+      setGatewayModal(null);
+      toast('خطا در برقراری ارتباط با سرور پرداخت.', 'error');
+    }
   };
+
 
   const kindChip = {
     order: '🛒 سفارش باتری',
@@ -296,7 +370,7 @@ export default function Pay() {
             {kind !== 'deposit' && (
               <div className="coupon-box" style={{ marginBottom: 24 }}>
                 <label className="field-label" style={{ display: 'block', marginBottom: 8, fontSize: '0.88rem' }}>
-                  <Icon name="tag" size={15} /> کد تخفیف دارید؟ (مثال: <button type="button" className="inline-code-btn" onClick={() => setCouponInput('CHB15')}>CHB15</button>)
+                  <Icon name="tag" size={15} /> کد تخفیف دارید؟
                 </label>
                 <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                   <input
@@ -304,7 +378,7 @@ export default function Pay() {
                     style={{ flex: 1, minWidth: 180, direction: 'ltr', textAlign: 'left', fontWeight: 700, letterSpacing: 1 }}
                     value={couponInput}
                     onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
-                    placeholder="CHB15"
+                    placeholder="مثلاً CHB15"
                     onKeyDown={(e) => e.key === 'Enter' && handleApplyCoupon()}
                   />
                   <Btn variant="ghost" icon="check" onClick={handleApplyCoupon}>اعمال کد تخفیف</Btn>
