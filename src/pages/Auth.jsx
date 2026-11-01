@@ -58,7 +58,9 @@ export default function Auth() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           to: p, 
-          message: `کد تایید ورود به امداد باتری چابهار:\n${generatedCode}` 
+          message: `کد تایید ورود به امداد باتری چابهار:\n${generatedCode}`,
+          template: 'chabahar-auth',
+          token: generatedCode
         })
       });
 

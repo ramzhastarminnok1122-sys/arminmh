@@ -98,17 +98,23 @@ app.post('/api/zibal/verify', (req, res) => {
 });
 
 app.post('/api/sms', (req, res) => {
-
-  const to = req.body && req.body.to;
-  const message = req.body && req.body.message;
+  const { to, message, template, token, token2, token3 } = req.body || {};
   const key = process.env.KAVENEGAR_API_KEY;
 
   if (!key) return res.status(500).json({ ok: false, error: 'KAVENEGAR_API_KEY is not set' });
-  if (!to || !message) return res.status(400).json({ ok: false, error: 'to and message are required' });
+  if (!to) return res.status(400).json({ ok: false, error: 'to is required' });
 
-  const sender = process.env.KAVENEGAR_SENDER || '';
-  let url = 'https://api.kavenegar.com/v1/' + key + '/sms/send.json?receptor=' + encodeURIComponent(to) + '&message=' + encodeURIComponent(message);
-  if (sender) url += '&sender=' + encodeURIComponent(sender);
+  let url = '';
+  if (template && token) {
+    url = 'https://api.kavenegar.com/v1/' + key + '/verify/lookup.json?receptor=' + encodeURIComponent(to) + '&token=' + encodeURIComponent(token) + '&template=' + encodeURIComponent(template);
+    if (token2) url += '&token2=' + encodeURIComponent(token2);
+    if (token3) url += '&token3=' + encodeURIComponent(token3);
+  } else {
+    if (!message) return res.status(400).json({ ok: false, error: 'message required' });
+    const sender = process.env.KAVENEGAR_SENDER || '';
+    url = 'https://api.kavenegar.com/v1/' + key + '/sms/send.json?receptor=' + encodeURIComponent(to) + '&message=' + encodeURIComponent(message);
+    if (sender) url += '&sender=' + encodeURIComponent(sender);
+  }
 
   https.get(url, (apiRes) => {
     let data = '';
@@ -123,6 +129,8 @@ app.post('/api/sms', (req, res) => {
     });
   }).on('error', (e) => {
     res.status(500).json({ ok: false, error: e.message });
+  });
+});
   });
 });
 
