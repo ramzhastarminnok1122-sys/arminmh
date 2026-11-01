@@ -106,7 +106,9 @@ app.post('/api/sms', (req, res) => {
   if (!key) return res.status(500).json({ ok: false, error: 'KAVENEGAR_API_KEY is not set' });
   if (!to || !message) return res.status(400).json({ ok: false, error: 'to and message are required' });
 
-  const url = "https://api.kavenegar.com/v1/" + key + "/sms/send.json?receptor=" + encodeURIComponent(to) + "&message=" + encodeURIComponent(message);
+  const sender = process.env.KAVENEGAR_SENDER || '';
+  let url = 'https://api.kavenegar.com/v1/' + key + '/sms/send.json?receptor=' + encodeURIComponent(to) + '&message=' + encodeURIComponent(message);
+  if (sender) url += '&sender=' + encodeURIComponent(sender);
 
   https.get(url, (apiRes) => {
     let data = '';

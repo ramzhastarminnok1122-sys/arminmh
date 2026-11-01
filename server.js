@@ -50,7 +50,9 @@ app.post('/api/sms', async (req, res) => {
     if (!key) return res.status(500).json({ ok: false, error: 'KAVENEGAR_API_KEY تنظیم نشده' });
     if (!to || !message) return res.status(400).json({ ok: false, error: 'to/message required' });
 
-    const url = `https://api.kavenegar.com/v1/${key}/sms/send.json?receptor=${encodeURIComponent(to)}&message=${encodeURIComponent(message)}`;
+    const sender = process.env.KAVENEGAR_SENDER || '';
+    let url = `https://api.kavenegar.com/v1/${key}/sms/send.json?receptor=${encodeURIComponent(to)}&message=${encodeURIComponent(message)}`;
+    if (sender) url += `&sender=${encodeURIComponent(sender)}`;
     const r = await fetch(url);
     const data = await r.json().catch(() => ({}));
     return res.status(r.ok ? 200 : 502).json({ ok: r.ok, data });
