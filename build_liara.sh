@@ -116,7 +116,7 @@ app.post('/api/sms', (req, res) => {
     apiRes.on('end', () => {
       try {
         const parsed = JSON.parse(data);
-        res.status(apiRes.statusCode === 200 ? 200 : 502).json({ ok: apiRes.statusCode === 200, data: parsed });
+        res.status(apiRes.statusCode === 200 ? 200 : (parsed.return && parsed.return.status === 412 ? 412 : 502)).json({ ok: apiRes.statusCode === 200, data: parsed });
       } catch (e) {
         res.status(500).json({ ok: false, error: 'Failed to parse SMS provider response' });
       }

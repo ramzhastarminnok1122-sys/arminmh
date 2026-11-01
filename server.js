@@ -55,7 +55,7 @@ app.post('/api/sms', async (req, res) => {
     if (sender) url += `&sender=${encodeURIComponent(sender)}`;
     const r = await fetch(url);
     const data = await r.json().catch(() => ({}));
-    return res.status(r.ok ? 200 : 502).json({ ok: r.ok, data });
+    return res.status(r.ok ? 200 : (data.return && data.return.status === 412 ? 412 : 502)).json({ ok: r.ok, data });
   } catch (e) {
     return res.status(500).json({ ok: false, error: String(e) });
   }
