@@ -69,7 +69,7 @@ const MODULES = {
     defaults: { title: '', subtitle: '', discount: '', imageDesktop: '', imageMobile: '', link: '/offers', order: 99, active: true },
     schema: [
       { key: 'title', label: 'عنوان', type: 'text', required: true },
-      { key: 'subtitle', label: 'زیرتیتر', type: 'text' },
+      { key: 'subtitle', label: 'زیرتیتر', type: 'text', hint: 'متن توضیحی، مثلاً: کد تخفیف CHB15' },
       { key: 'discount', label: 'درصد/برچسب تخفیف', type: 'text', hint: 'مثلاً: ۱۵٪' },
       { key: 'imageDesktop', label: 'تصویر دسکتاپ', type: 'image', full: true },
       { key: 'imageMobile', label: 'تصویر موبایل', type: 'image', full: true },

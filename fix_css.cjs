@@ -1,11 +1,15 @@
 const fs = require('fs');
-let code = fs.readFileSync('src/components/Chatbot.jsx', 'utf8');
+let css = fs.readFileSync('src/styles.css', 'utf8');
 
-// The backslash escaping inside the JSX dangerouslySetInnerHTML is causing Babel to choke.
-// Let's replace the entire style block with a clean, single-line string without backticks.
-code = code.replace(
-  /<style dangerouslySetInnerHTML=\{{__html: \\\`[\s\S]*?\\\`\}} \/>/g,
-  "<style dangerouslySetInnerHTML={{__html: '@keyframes flash { 0% { opacity: 0.2; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1.2); } 100% { opacity: 0.2; transform: scale(0.8); } } .chatbot-toggle:hover { transform: scale(1.08); } @media (max-width: 760px) { .chatbot-wrapper { bottom: calc(85px + env(safe-area-inset-bottom)) !important; right: 14px !important; } .chatbot-window { width: calc(100vw - 28px) !important; max-height: 62vh !important; transform-origin: bottom right; } }'}} />"
-);
+// Fix bottom-nav jumping issue
+css = css.replace('.bottom-nav {\n  display: none;\n  position: fixed;\n  bottom: 0;', 
+'.bottom-nav {\n  display: none;\n  position: fixed;\n  bottom: 0;\n  transform: translateZ(0);\n  will-change: transform;');
 
-fs.writeFileSync('src/components/Chatbot.jsx', code);
+// Fix emergency button text alignment
+css = css.replace(".bn-em-btn::after { content: 'امداد'; position: absolute; bottom: -19px; font-size: 0.68rem; font-weight: 800; color: #ff8d84; }",
+".bn-em-btn::after { content: 'امداد'; position: absolute; bottom: -20px; left: 50%; transform: translateX(-50%); font-size: 0.72rem; font-weight: 800; color: #ff8d84; }");
+
+// Add checkout button full width
+css += `\n/* Fix checkout button overflow */\n.btn.w-full { width: 100%; box-sizing: border-box; }`;
+
+fs.writeFileSync('src/styles.css', css);
