@@ -131,8 +131,6 @@ app.post('/api/sms', (req, res) => {
     res.status(500).json({ ok: false, error: e.message });
   });
 });
-  });
-});
 
 app.use(express.static(path.join(__dirname, 'dist')));
 
