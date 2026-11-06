@@ -25,6 +25,7 @@ const MOBILE_NAV = [
 
 /* سورپرایز موبایل: دکمهٔ شناور هوشمند — با یک لمس به مهم‌ترین کارها */
 function SpeedDial({ phone, onMenu }) {
+  const { state } = useStore();
   const [open, setOpen] = React.useState(false);
   const items = [
     { icon: 'sparkle', label: 'پشتیبانی هوشمند (AI)', action: () => window.dispatchEvent(new CustomEvent('open-chatbot')), cls: 'sd-amber' },
