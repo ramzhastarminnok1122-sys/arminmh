@@ -241,6 +241,11 @@ function Footer() {
             </ul>
           </div>
         </div>
+        
+          <div className="enamad-box">
+            <h4>مجوزها و نمادها</h4>
+            <div className="enamad-symbol" dangerouslySetInnerHTML={{ __html: `<a referrerpolicy='origin' target='_blank' href='https://trustseal.enamad.ir/?id=8560450&Code=GFZWngMPan65FVht1pkZ8nHYxGC85Cd2'><img referrerpolicy='origin' src='https://trustseal.enamad.ir/logo.aspx?id=8560450&Code=GFZWngMPan65FVht1pkZ8nHYxGC85Cd2' alt='' style='cursor:pointer' code='GFZWngMPan65FVht1pkZ8nHYxGC85Cd2'></a>` }} />
+          </div>
         <div className="footer-bar">
           <span>© {digits(1405)} {s.brandName} — تمامی حقوق محفوظ است.</span>
           <span>ساخته‌شده با ⚡ برای رانندگان چابهار</span>
