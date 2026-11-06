@@ -1653,3 +1653,7 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: 0.9rem; min-width
 
 /* Fix checkout button overflow */
 .btn.w-full { width: 100%; box-sizing: border-box; }
+.enamad-box { margin-top: 10px; display: flex; flex-direction: column; gap: 10px; }
+.enamad-box h4 { font-size: .95rem; font-weight: 800; color: #fff; margin-bottom: 4px; }
+.enamad-symbol { background: #fff; border-radius: 12px; padding: 8px; width: fit-content; display: inline-block; }
+.enamad-symbol img { max-width: 80px; height: auto; display: block; }
