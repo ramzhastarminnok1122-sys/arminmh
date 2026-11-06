@@ -5,6 +5,10 @@ rm -rf liara_build
 mkdir -p liara_build
 cp -r dist liara_build/
 
+
+# Add Enamad validation file
+touch liara_build/dist/48183196.txt
+
 cat << 'SERVER' > liara_build/server.js
 const express = require('express');
 const path = require('path');
