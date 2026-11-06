@@ -137,6 +137,20 @@ export default function Emergency() {
       const garage = exists ? st.garage : [...(st.garage || []), { id: uid(), phone: acct.phone, brand: vehicle.brand, model: vehicle.model, year: '' }];
       return { ...st, requests: [req, ...st.requests], garage };
     });
+
+    if (defaultTech && defaultTech.phone) {
+      fetch('/api/sms', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: defaultTech.phone,
+          template: 'tech-alert',
+          token: acct.phone,
+          token2: (vehicle.brand + '-' + vehicle.model).replace(/\s+/g, '_'),
+          token3: code.replace(/-/g, '')
+        })
+      }).catch(() => {});
+    }
     notifyOwner(state, {
       title: '🚨 درخواست امداد جدید — ' + code,
       body: `${acct.name} — ${acct.phone}\n${f.problem} — ${vehicle.brand} ${vehicle.model}\nموقعیت: ${req.location.desc}`

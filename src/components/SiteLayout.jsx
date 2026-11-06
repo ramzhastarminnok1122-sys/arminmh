@@ -48,7 +48,7 @@ function SpeedDial({ phone, onMenu }) {
         ))}
       </div>
       <button className={cn('sd-main', open && 'open')} onClick={() => setOpen(!open)} aria-label="دسترسی سریع" aria-expanded={open}>
-        <Icon name={open ? 'x' : 'bolt'} size={24} />
+        {open ? <Icon name="x" size={24} /> : (state.settings?.speedDialIcon ? <img src={state.settings.speedDialIcon} style={{ width: 34, height: 34, borderRadius: '50%', objectFit: 'cover' }} alt="" /> : <Icon name="bolt" size={24} />)}
       </button>
     </div>
   );
@@ -172,6 +172,17 @@ export function useCustomer() {
   const [cust, setCust] = useState(() => {
     try { return JSON.parse(localStorage.getItem(CUST_KEY)) || null; } catch { return null; }
   });
+  useEffect(() => {
+    const handle = () => {
+      try { setCust(JSON.parse(localStorage.getItem(CUST_KEY)) || null); } catch { setCust(null); }
+    };
+    window.addEventListener('storage', handle);
+    window.addEventListener('customer_changed', handle);
+    return () => {
+      window.removeEventListener('storage', handle);
+      window.removeEventListener('customer_changed', handle);
+    };
+  }, []);
   return [cust, setCust];
 }
 
@@ -185,7 +196,7 @@ function AccountBtn() {
     );
   }
   return (
-    <Link to="/auth?next=/emergency" className="acct-btn">
+    <Link to="/auth" className="acct-btn">
       <Icon name="user" size={18} /><span className="acct-name">ورود | ثبت‌نام</span>
     </Link>
   );

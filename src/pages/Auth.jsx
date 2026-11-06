@@ -156,6 +156,7 @@ export default function Auth() {
       CUST_KEY,
       JSON.stringify({ id: userObj.id, name: userObj.name, phone: userObj.phone })
     );
+    window.dispatchEvent(new Event('customer_changed'));
 
     toast(`ورود موفق! خوش آمدید ${userObj.name} 🎉`, 'success');
     nav(next, { replace: true });

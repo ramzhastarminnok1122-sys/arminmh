@@ -248,8 +248,8 @@ h3 { font-size: 1.16rem; margin-bottom: 6px; }
 /* ============ Hero ============ */
 .hero { position: relative; background: var(--navy); color: #fff; overflow: hidden; isolation: isolate; }
 .hero-bg { position: absolute; inset: 0; z-index: -2; }
-.hero-bg img { width: 100%; height: 100%; object-fit: cover; opacity: 0.42; }
-.hero::after { content: ''; position: absolute; inset: 0; z-index: -1; background: linear-gradient(105deg, rgba(10, 18, 38, 0.96) 22%, rgba(10, 18, 38, 0.72) 55%, rgba(10, 24, 60, 0.45)); }
+.hero-bg img { width: 100%; height: 100%; object-fit: cover; }
+
 .hero-glow { position: absolute; width: 560px; height: 560px; border-radius: 99px; filter: blur(70px); z-index: -1; opacity: 0.5; animation: drift 14s ease-in-out infinite alternate; }
 .hero-glow.g1 { background: radial-gradient(circle, rgba(30, 107, 255, 0.5), transparent 62%); inset-inline-start: -140px; top: -120px; }
 .hero-glow.g2 { background: radial-gradient(circle, rgba(255, 184, 0, 0.32), transparent 60%); inset-inline-end: -100px; bottom: -180px; animation-delay: -6s; }
