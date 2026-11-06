@@ -117,7 +117,7 @@ export default function Emergency() {
     const vehicle = g ? { brand: g.brand, model: g.model, year: g.year || '' } : { brand: f.brand, model: f.model, year: '' };
     const code = reqCode();
     const check = ai?.result || aiCheckLocation({ desc: f.loc.desc, point: picked ? { x: f.loc.x, y: f.loc.y } : null, areas: state.areas.filter((a) => a.active) });
-    const defaultTech = (state.technicians || []).find((t) => t.online) || (state.technicians || [])[0];
+    const defaultTech = getBestTech(state);
     const req = {
       id: uid(), code, name: acct.name, phone: acct.phone,
       problem: f.problem, vehicle,

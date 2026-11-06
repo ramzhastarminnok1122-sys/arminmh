@@ -28,8 +28,19 @@ export default function TechDashboard() {
         .sort((a, b) => RANK[a.status] - RANK[b.status] || b.createdAt - a.createdAt),
     [state.requests, me.id]
   );
+  const myOrders = useMemo(
+    () =>
+      (state.orders || [])
+        .filter((o) => o.technicianId === me.id && (o.status === 'پرداخت شد — در حال آماده‌سازی' || o.status === 'ارسال شد' || o.status === 'تحویل و نصب شد'))
+        .sort((a, b) => b.createdAt - a.createdAt),
+    [state.orders, me.id]
+  );
+  
+  const orderTasks = myOrders.filter(o => o.status !== 'تحویل و نصب شد');
+  const todayDoneOrders = myOrders.filter(o => o.status === 'تحویل و نصب شد' && o.paidAt && isToday(o.paidAt)); // or use some done date
   const tasks = myReqs.filter((r) => RANK[r.status] < 5);
   const todayDone = myReqs.filter((r) => r.doneAt && isToday(r.doneAt));
+  const allDoneCount = todayDone.length + todayDoneOrders.length;
 
   const logout = () => {
     localStorage.removeItem(TECH_KEY);
