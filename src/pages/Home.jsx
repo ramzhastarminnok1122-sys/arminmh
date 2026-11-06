@@ -109,7 +109,29 @@ export default function Home() {
     <>
       {/* ---------- Hero ---------- */}
       <section className="hero">
-        <div className="hero-bg"><img src={heroVan} alt="امداد باتری در شب" /></div>
+        <style dangerouslySetInnerHTML={{ __html: `
+          .hero-bg img { 
+            width: 100%; height: 100%; object-fit: cover; 
+            filter: blur(${hc.hero.overlayBlur || 0}px);
+          }
+          .hero-overlay {
+            position: absolute; inset: 0; z-index: -1;
+            background: ${hc.hero.overlayColor || '#0a1226'};
+            opacity: ${(hc.hero.overlayOpacity !== undefined ? hc.hero.overlayOpacity : 85) / 100};
+          }
+          @media (max-width: 768px) {
+            .hero-bg img.desktop { display: ${hc.hero.bgMobile ? 'none' : 'block'}; }
+            .hero-bg img.mobile { display: ${hc.hero.bgMobile ? 'block' : 'none'}; }
+          }
+          @media (min-width: 769px) {
+            .hero-bg img.mobile { display: none; }
+          }
+        `}} />
+        <div className="hero-bg">
+          <img src={hc.hero.bgDesktop || heroVan} alt="امداد باتری" className="desktop" />
+          {hc.hero.bgMobile && <img src={hc.hero.bgMobile} alt="امداد باتری موبایل" className="mobile" />}
+        </div>
+        <div className="hero-overlay" />
         <div className="hero-glow g1" /><div className="hero-glow g2" />
         <div className="container hero-in">
           <div>
