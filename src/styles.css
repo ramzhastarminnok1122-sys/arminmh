@@ -491,7 +491,7 @@ textarea.input { resize: vertical; min-height: 96px; }
 .stat-ic { width: 50px; height: 50px; border-radius: 15px; display: grid; place-items: center; flex: none; }
 .stat-card b { font-size: 1.5rem; display: block; line-height: 1.3; }
 .stat-card span { color: var(--muted); font-size: 0.84rem; }
-.admin-panel { background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 24px; }
+.admin-panel { background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 24px; max-width: 100%; overflow: hidden; box-sizing: border-box; }
 .admin-panel + .admin-panel { margin-top: 22px; }
 .panel-head { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 18px; flex-wrap: wrap; }
 .panel-head h2 { font-size: 1.12rem; }
@@ -546,9 +546,9 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: 0.9rem; min-width
 .login-card { width: min(400px, 100%); }
 .login-card .logo { color: var(--navy); margin-bottom: 26px; }
 .login-card .logo-text small { color: var(--muted-2); }
-.pw-field { position: relative; }
-.pw-field .input { padding-inline-end: 46px; direction: ltr; text-align: end; letter-spacing: 3px; font-weight: 700; }
-.pw-field .icon-btn { position: absolute; inset-inline-end: 6px; top: 50%; transform: translateY(-58%); }
+.pw-box { position: relative; width: 100%; }
+.pw-box .input { padding-inline-end: 46px; direction: ltr; text-align: left; font-family: monospace; letter-spacing: 3px; font-weight: 700; font-size: 1.1rem; }
+.pw-box .icon-btn { position: absolute; inset-inline-end: 6px; top: 50%; transform: translateY(-50%); }
 .shake { animation: shake 0.4s; }
 @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(7px); } 50% { transform: translateX(-7px); } 75% { transform: translateX(4px); } }
 
@@ -604,7 +604,7 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: 0.9rem; min-width
   .admin-side { position: fixed; inset-inline-start: 0; top: 0; bottom: 0; width: 270px; z-index: 95; transform: translateX(-105%); transition: transform 0.3s; }
   [dir='rtl'] .admin-side { transform: translateX(105%); }
   .admin-side.open { transform: translateX(0) !important; box-shadow: var(--shadow-dark); }
-  .admin-main { padding: 20px 16px 80px; }
+  .admin-main { padding: 20px 16px 80px; max-width: 100vw; overflow-x: hidden; }
   .admin-menu-btn { display: inline-flex; }
 }
 @media (max-width: 720px) {

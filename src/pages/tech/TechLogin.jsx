@@ -12,6 +12,7 @@ export default function TechLogin() {
   const nav = useNavigate();
   const [id, setId] = useState(() => (state.technicians || [])[0]?.id || 'tc1');
   const [pw, setPw] = useState('');
+  const [show, setShow] = useState(false);
   const [shake, setShake] = useState(false);
 
   if (localStorage.getItem(TECH_KEY)) return <Navigate to="/tech" replace />;
@@ -59,11 +60,12 @@ export default function TechLogin() {
               {(state.technicians || []).map((t) => <option key={t.id} value={t.id}>{t.name} — {toFa(t.zone)}</option>)}
             </select>
           </Field>
-          <div className={cn('pw-field', shake && 'shake')}>
-            <Field label="رمز عبور">
-              <input className="input" type="password" value={pw} onChange={(e) => setPw(e.target.value)} placeholder="123" autoFocus autoComplete="current-password" />
-            </Field>
-          </div>
+          <Field label="رمز عبور">
+            <div className={cn('pw-box', shake && 'shake')}>
+              <input className="input" type={show ? 'text' : 'password'} value={pw} onChange={(e) => setPw(e.target.value)} placeholder="123" autoFocus autoComplete="current-password" />
+              <button type="button" className="icon-btn" onClick={() => setShow(!show)} aria-label="نمایش رمز"><Icon name="eye" size={17} /></button>
+            </div>
+          </Field>
           <Btn variant="primary" size="lg" icon="logout" type="submit" style={{ width: '100%', justifyContent: 'center', marginTop: 12 }}>
             ورود به پنل امدادگر
           </Btn>

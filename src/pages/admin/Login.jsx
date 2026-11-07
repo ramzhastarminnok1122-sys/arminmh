@@ -49,15 +49,12 @@ export default function AdminLogin() {
           </Link>
           <h2 style={{ fontSize: '1.3rem', marginBottom: 6 }}>ورود مدیر</h2>
           <p style={{ color: 'var(--muted)', fontSize: '.9rem', marginBottom: 22 }}>برای دسترسی به داشبورد، رمز مدیریتی را وارد کنید.</p>
-          <div className={cn('pw-field', shake && 'shake')}>
-            <Field label="رمز عبور مدیریتی">
-              <input className="input" type={show ? 'text' : 'password'} value={pw} onChange={(e) => setPw(e.target.value)}
-                placeholder="••••••" autoFocus autoComplete="current-password" />
-              <button type="button" className="icon-btn" onClick={() => setShow(!show)} aria-label="نمایش رمز">
-                <Icon name="eye" size={17} />
-              </button>
-            </Field>
-          </div>
+          <Field label="رمز عبور مدیریتی">
+            <div className={cn('pw-box', shake && 'shake')}>
+              <input className="input" type={show ? 'text' : 'password'} value={pw} onChange={(e) => setPw(e.target.value)} placeholder="••••••" autoFocus autoComplete="current-password" />
+              <button type="button" className="icon-btn" onClick={() => setShow(!show)} aria-label="نمایش رمز"><Icon name="eye" size={17} /></button>
+            </div>
+          </Field>
           <Btn variant="dark" size="lg" icon="logout" type="submit" style={{ width: '100%', justifyContent: 'center', marginTop: 10 }}>
             ورود به داشبورد
           </Btn>

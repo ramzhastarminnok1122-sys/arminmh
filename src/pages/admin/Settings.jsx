@@ -140,8 +140,8 @@ export default function Settings() {
       <div className="admin-panel">
         <div className="panel-head"><div><h2>رمز عبور مدیریتی</h2><p>برای ورود به همین پنل استفاده می‌شود</p></div></div>
         <div className="form-grid">
-          <Field label="رمز جدید"><input className="input" type="password" value={pw.a} onChange={(e) => setPw({ ...pw, a: e.target.value })} placeholder="••••••" /></Field>
-          <Field label="تکرار رمز جدید"><input className="input" type="password" value={pw.b} onChange={(e) => setPw({ ...pw, b: e.target.value })} placeholder="••••••" /></Field>
+          <Field label="رمز جدید"><div className="pw-box"><input className="input" type="password" value={pw.a} onChange={(e) => setPw({ ...pw, a: e.target.value })} placeholder="••••••" /></div></Field>
+          <Field label="تکرار رمز جدید"><div className="pw-box"><input className="input" type="password" value={pw.b} onChange={(e) => setPw({ ...pw, b: e.target.value })} placeholder="••••••" /></div></Field>
         </div>
         <Btn variant="dark" icon="check" onClick={savePw}>تغییر رمز</Btn>
       </div>
