@@ -163,7 +163,7 @@ export function seed() {
 
     // ---------- امدادگران ----------
     technicians: [
-      { id: 'tc1', name: 'حمید', phone: '0915 346 7788', zone: 'تمامی مناطق چابهار و حومه', rating: 4.9, completed: 1812, online: true, color: '#1e6bff', password: '123' }
+      { id: 'tc1', name: 'حمید', phone: '09962896763', zone: 'تمامی مناطق چابهار و حومه', rating: 4.9, completed: 1812, online: true, color: '#1e6bff', password: '123' }
     ],
 
     // ---------- مناطق تحت پوشش ----------

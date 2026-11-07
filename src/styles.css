@@ -947,8 +947,9 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: 0.9rem; min-width
 
   /* فرم‌ها و کارت‌ها */
   .wiz-card { padding: 20px 16px; border-radius: 18px; }
-  .wiz-nav { position: relative; background: linear-gradient(180deg, transparent, var(--surface) 30%); padding-top: 10px; margin-top: 6px; }
-  .wiz-nav .btn { min-height: 50px; }
+  .wiz-nav { position: relative; background: linear-gradient(180deg, transparent, var(--surface) 30%); padding-top: 10px; margin-top: 6px; flex-wrap: wrap-reverse; }
+  .wiz-nav .btn { min-height: 50px; flex: 1 1 auto; justify-content: center; text-align: center; white-space: pre-wrap; padding-inline: 12px; }
+  .wiz-nav .btn-lg { width: 100%; }
   .summary-box .sum-row { flex-direction: column; align-items: flex-start; gap: 2px; padding: 10px 0; }
   .summary-box .sum-row b { text-align: start !important; font-size: .92rem; }
   .chip-row { gap: 8px; }

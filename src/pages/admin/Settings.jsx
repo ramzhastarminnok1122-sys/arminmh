@@ -41,6 +41,45 @@ export default function Settings() {
       </div>
 
       <div className="admin-panel">
+        <div className="panel-head"><div><h2>لوگو و آیکون‌ها</h2><p>تصاویر اصلی سایت و دکمه‌های شناور (پیشنهاد: مربع بدون پس‌زمینه (PNG))</p></div></div>
+        <div className="form-grid">
+          <Field label="لوگوی سایت (هدر و فوتر)" hint="پیشنهاد: حداقل 200x200 پیکسل">
+            <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+              {s.brandLogo ? <img src={s.brandLogo} style={{ width: 44, height: 44, objectFit: 'contain' }} alt="" /> : <Icon name="image" size={32} />}
+              <label className="btn btn-outline-brand btn-sm" style={{ cursor: 'pointer' }}>
+                انتخاب تصویر
+                <input type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (!f) return;
+                  const r = new FileReader();
+                  r.onload = () => update((st) => ({ ...st, settings: { ...st.settings, brandLogo: r.result } }));
+                  r.readAsDataURL(f);
+                }} />
+              </label>
+              {s.brandLogo && <button className="btn btn-outline-red btn-sm" onClick={() => update((st) => ({ ...st, settings: { ...st.settings, brandLogo: '' } }))}>حذف</button>}
+            </div>
+          </Field>
+          
+          <Field label="آیکون مکعب زرد (دکمه شناور امداد)" hint="پیشنهاد: مربع 128x128 پیکسل">
+            <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+              {s.speedDialIcon ? <img src={s.speedDialIcon} style={{ width: 44, height: 44, objectFit: 'cover', borderRadius: '50%' }} alt="" /> : <div style={{ width: 44, height: 44, background: 'var(--brand)', borderRadius: '50%', display: 'grid', placeItems: 'center' }}><Icon name="bolt" /></div>}
+              <label className="btn btn-outline-brand btn-sm" style={{ cursor: 'pointer' }}>
+                انتخاب تصویر
+                <input type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (!f) return;
+                  const r = new FileReader();
+                  r.onload = () => update((st) => ({ ...st, settings: { ...st.settings, speedDialIcon: r.result } }));
+                  r.readAsDataURL(f);
+                }} />
+              </label>
+              {s.speedDialIcon && <button className="btn btn-outline-red btn-sm" onClick={() => update((st) => ({ ...st, settings: { ...st.settings, speedDialIcon: '' } }))}>حذف</button>}
+            </div>
+          </Field>
+        </div>
+      </div>
+
+      <div className="admin-panel">
         <div className="panel-head"><div><h2>آدرس و ساعات کاری</h2></div></div>
         <div className="form-grid">
           <Field label="آدرس دفتر / فروشگاه" className="span2"><input className="input" value={s.address} onChange={(e) => set('address', e.target.value)} /></Field>

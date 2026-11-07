@@ -52,7 +52,7 @@ app.post('/api/zibal/request', (req, res) => {
     hostname: 'gateway.zibal.ir',
     path: '/v1/request',
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Content-Length': data.length }
+    headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(data) }
   };
 
   const zReq = https.request(options, (zRes) => {
@@ -81,7 +81,7 @@ app.post('/api/zibal/verify', (req, res) => {
     hostname: 'gateway.zibal.ir',
     path: '/v1/verify',
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Content-Length': data.length }
+    headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(data) }
   };
 
   const zReq = https.request(options, (zRes) => {
