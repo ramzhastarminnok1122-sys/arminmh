@@ -31,17 +31,20 @@ export default function Pay() {
   const [appliedCoupon, setAppliedCoupon] = useState(null);
 
   useEffect(() => {
-    const isVerify = sp.get('verify') === '1';
-    const success = sp.get('success') === '1';
-    const trackId = sp.get('trackId');
-    const orderId = sp.get('orderId');
-    const vKind = sp.get('kind');
+    const rawSearch = new URLSearchParams(window.location.search);
+    const isVerify = sp.get('verify') === '1' || rawSearch.get('verify') === '1';
+    const success = sp.get('success') === '1' || rawSearch.get('success') === '1';
+    const trackId = sp.get('trackId') || rawSearch.get('trackId');
+    const orderId = sp.get('orderId') || rawSearch.get('orderId');
+    const vKind = sp.get('kind') || rawSearch.get('kind');
 
     if (isVerify && trackId) {
       if (!success) {
         toast('پرداخت توسط کاربر لغو شد یا ناموفق بود.', 'error');
         sp.delete('verify'); sp.delete('success'); sp.delete('trackId'); sp.delete('status');
         setSp(sp);
+        // همچنین پاک کردن از URL واقعی در صورت وجود
+        if (rawSearch.has('trackId')) window.history.replaceState({}, '', window.location.pathname + window.location.hash);
         return;
       }
       
@@ -132,6 +135,7 @@ export default function Pay() {
       }).finally(() => {
         sp.delete('verify'); sp.delete('success'); sp.delete('trackId'); sp.delete('status');
         setSp(sp);
+        if (rawSearch.has('trackId')) window.history.replaceState({}, '', window.location.pathname + window.location.hash);
       });
     }
   }, []);
