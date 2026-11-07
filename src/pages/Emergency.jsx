@@ -138,7 +138,8 @@ export default function Emergency() {
       return { ...st, requests: [req, ...st.requests], garage };
     });
 
-    if (defaultTech && defaultTech.phone) {
+    const isDepositPending = dep.enabled && dep.amount > 0;
+    if (!isDepositPending && defaultTech && defaultTech.phone) {
       fetch('/api/sms', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -146,7 +147,7 @@ export default function Emergency() {
           to: defaultTech.phone,
           template: 'tech-alert',
           token: acct.phone,
-          token2: (vehicle.brand + '-' + vehicle.model).replace(/\s+/g, '_'),
+          token2: (vehicle.brand + '-' + vehicle.model).replace(/\s+/g, '_').substring(0, 20),
           token3: code.replace(/-/g, '')
         })
       }).catch(() => {});
