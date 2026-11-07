@@ -156,7 +156,7 @@ export default function Emergency() {
       body: `${acct.name} — ${acct.phone}\n${f.problem} — ${vehicle.brand} ${vehicle.model}\nموقعیت: ${req.location.desc}`
     });
     toast(`درخواست ${toFa(code)} ثبت شد!`);
-    nav(`/track/${code}`);
+    nav(`/track/${code}`, { replace: true });
   };
 
   const err = (ok) => touched && !ok;
