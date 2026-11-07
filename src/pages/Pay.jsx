@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { useSearchParams, Link, useNavigate } from 'react-router-dom';
 import { useStore } from '../lib/store';
 import { Btn, Icon, Badge, Empty } from '../components/ui';
@@ -245,7 +245,7 @@ export default function Pay() {
 
     try {
       const orderId = (order ? order.id : req.code) || 'REQ-' + Date.now();
-      const callbackUrl = window.location.origin + '/pay?verify=1&kind=' + kind + '&orderId=' + orderId;
+      const callbackUrl = window.location.origin + window.location.pathname + '#/pay?verify=1&kind=' + kind + '&orderId=' + orderId;
       const res = await fetch('/api/zibal/request', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

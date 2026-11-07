@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams, Navigate } from 'react-router-dom';
 import { useStore } from '../lib/store';
 import { Btn, Icon, Field } from '../components/ui';
 import ChabaharMap from '../components/ChabaharMap';
-import { cn, normPhone, toFa, uid, reqCode, addrError, declError, aiCheckLocation, aiCheckVehicle, BRAND_GROUPS, VEHICLE_DB } from '../lib/utils';
+import { cn, normPhone, toFa, uid, reqCode, addrError, declError, aiCheckLocation, aiCheckVehicle, BRAND_GROUPS, VEHICLE_DB, getBestTech } from '../lib/utils';
 import { notifyOwner } from '../lib/notify';
 
 const PROBLEMS = [
