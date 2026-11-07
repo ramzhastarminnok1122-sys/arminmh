@@ -110,7 +110,7 @@ export default function Batteries() {
     setOrderFor(null);
     setTouched(false);
     toast(totalDiscPercent > 0 ? `سفارش ثبت شد — ${toFa(totalDiscPercent)}٪ تخفیف روی فاکتور شما اعمال گردید!` : 'سفارش ثبت شد؛ اکنون به درگاه پرداخت منتقل می‌شوید.');
-    nav(`/pay?order=${order.id}`);
+    nav(`/pay?order=${order.id}`, { replace: true });
   };
 
   return (
