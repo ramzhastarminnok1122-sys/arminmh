@@ -42,7 +42,7 @@ app.post('/api/db', (req, res) => {
 
 app.post('/api/zibal/request', (req, res) => {
   const { amount, callbackUrl, description, orderId } = req.body || {};
-  const merchant = process.env.ZIBAL_MERCHANT || 'zibal';
+  const merchant = process.env.ZIBAL_MERCHANT || '6ae7394c75be4d13465c9a09';
 
   const data = JSON.stringify({
     merchant, amount, callbackUrl, description, orderId
@@ -74,7 +74,7 @@ app.post('/api/zibal/request', (req, res) => {
 
 app.post('/api/zibal/verify', (req, res) => {
   const { trackId } = req.body || {};
-  const merchant = process.env.ZIBAL_MERCHANT || 'zibal';
+  const merchant = process.env.ZIBAL_MERCHANT || '6ae7394c75be4d13465c9a09';
 
   const data = JSON.stringify({ merchant, trackId });
   const options = {

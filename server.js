@@ -12,7 +12,7 @@ app.use(express.json());
 app.post('/api/zibal/request', async (req, res) => {
   try {
     const { amount, callbackUrl, description, orderId } = req.body || {};
-    const merchant = process.env.ZIBAL_MERCHANT || 'zibal';
+    const merchant = process.env.ZIBAL_MERCHANT || '6ae7394c75be4d13465c9a09';
     const r = await fetch('https://gateway.zibal.ir/v1/request', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -28,7 +28,7 @@ app.post('/api/zibal/request', async (req, res) => {
 app.post('/api/zibal/verify', async (req, res) => {
   try {
     const { trackId } = req.body || {};
-    const merchant = process.env.ZIBAL_MERCHANT || 'zibal';
+    const merchant = process.env.ZIBAL_MERCHANT || '6ae7394c75be4d13465c9a09';
     const r = await fetch('https://gateway.zibal.ir/v1/verify', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

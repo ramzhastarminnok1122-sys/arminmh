@@ -14,6 +14,7 @@ export default function OwnerPanel() {
   const nav = useNavigate();
   const [authed, setAuthed] = useState(() => localStorage.getItem(KEY_O) === '1');
   const [pw, setPw] = useState('');
+  const [show, setShow] = useState(false);
   const [pwErr, setPwErr] = useState(false);
   const [tab, setTab] = useState('live');
   const [alerts, setAlerts] = useState([]);
@@ -237,9 +238,10 @@ export default function OwnerPanel() {
           <span className="owner-gate-ic"><Icon name="briefcase" size={30} /></span>
           <h1>پنل مدیر</h1>
           <p>امدادها، سفارش‌ها، فیش‌ها و گفتگو با مشتری‌ها — همه در یک جا</p>
-          <div className="phone-box" style={{ maxWidth: 280, margin: '18px auto 6px' }}>
-            <input className={cn('input', pwErr && 'err')} type="password" value={pw} autoFocus
+          <div className={cn('pw-box', pwErr && 'shake')} style={{ maxWidth: 280, margin: '18px auto 6px' }}>
+            <input className={cn('input', pwErr && 'err')} type={show ? 'text' : 'password'} value={pw} autoFocus
               onChange={(e) => setPw(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && login()} placeholder="رمز پنل مدیر" />
+            <button type="button" className="icon-btn" onClick={() => setShow(!show)} aria-label="نمایش رمز"><Icon name="eye" size={17} /></button>
           </div>
           {pwErr && <p className="field-error"><Icon name="alert" size={14} /> رمز درست نیست</p>}
           <button className="btn btn-primary" style={{ width: 280, justifyContent: 'center', marginTop: 14 }} onClick={login}>ورود</button>
