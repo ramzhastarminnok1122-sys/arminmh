@@ -49,7 +49,7 @@ const MODULES = {
       { key: 'code', label: 'کد تخفیف (مثلاً CHB15)', type: 'text', required: true, hint: 'کاربر با وارد کردن این کد در فروشگاه یا درگاه، تخفیف می‌گیرد' },
       { key: 'discountPercent', label: 'درصد تخفیف (٪)', type: 'number', hint: 'مثلاً: ۱۵' },
       { key: 'desc', label: 'توضیح', type: 'textarea', full: true },
-      { key: 'image', label: 'تصویر', type: 'image', full: true },
+      { key: 'image', label: 'تصویر', type: 'image', full: true, hint: 'پیشنهاد: مربع 600x600 پیکسل' },
       { key: 'oldPrice', label: 'قیمت اصلی قبل از تخفیف (خط‌خورده)', type: 'number' },
       { key: 'newPrice', label: 'قیمت پس از تخفیف (تومان)', type: 'number' },
       { key: 'start', label: 'تاریخ شروع', type: 'datetime' },
@@ -71,8 +71,8 @@ const MODULES = {
       { key: 'title', label: 'عنوان', type: 'text', required: true },
       { key: 'subtitle', label: 'زیرتیتر', type: 'text', hint: 'متن توضیحی، مثلاً: کد تخفیف CHB15' },
       { key: 'discount', label: 'درصد/برچسب تخفیف', type: 'text', hint: 'مثلاً: ۱۵٪' },
-      { key: 'imageDesktop', label: 'تصویر دسکتاپ', type: 'image', full: true },
-      { key: 'imageMobile', label: 'تصویر موبایل', type: 'image', full: true },
+      { key: 'imageDesktop', label: 'تصویر دسکتاپ', type: 'image', full: true, hint: 'ابعاد پیشنهادی: 1920x800' },
+      { key: 'imageMobile', label: 'تصویر موبایل', type: 'image', full: true, hint: 'ابعاد پیشنهادی: 1080x1920' },
       { key: 'link', label: 'لینک مقصد', type: 'text', hint: 'مثلاً: /batteries' },
       { key: 'order', label: 'ترتیب نمایش', type: 'number' },
       { key: 'active', label: 'فعال', type: 'switch' }
@@ -99,7 +99,7 @@ const MODULES = {
       { key: 'oldPrice', label: 'قیمت اصلی قبل از تخفیف — خط‌خورده (تومان)', type: 'number' },
       { key: 'stock', label: 'موجودی', type: 'select', options: [['in', 'موجود'], ['low', 'آخرین موجودی'], ['out', 'ناموجود']] },
       { key: 'suitable', label: 'مناسب برای', type: 'text', full: true },
-      { key: 'image', label: 'تصویر', type: 'image', full: true },
+      { key: 'image', label: 'تصویر', type: 'image', full: true, hint: 'پیشنهاد: مربع 600x600 پیکسل' },
       { key: 'active', label: 'نمایش در فروشگاه', type: 'switch' }
     ],
     columns: [
@@ -142,7 +142,7 @@ const MODULES = {
       { key: 'subtitle', label: 'زیرتیتر', type: 'text' },
       { key: 'badge', label: 'برچسب کوچک', type: 'text', hint: 'مثلاً: تخفیف هفته' },
       { key: 'link', label: 'لینک مقصد', type: 'text', hint: 'مثلاً: /batteries' },
-      { key: 'image', label: 'تصویر اسلاید', type: 'image', full: true },
+      { key: 'image', label: 'تصویر اسلاید', type: 'image', full: true, hint: 'پیشنهاد: 1920x800 پیکسل' },
       { key: 'order', label: 'ترتیب نمایش', type: 'number' },
       { key: 'active', label: 'فعال', type: 'switch' }
     ],
@@ -429,27 +429,74 @@ function toLocal(ts) {
 }
 
 function ImageField({ value, onChange }) {
+  const [f, setF] = React.useState(null);
+  const [b, setB] = React.useState(0);
+  const [o, setO] = React.useState(0);
+  const [c, setC] = React.useState('#000000');
+
+  const apply = () => {
+    if(!f) return;
+    const img = new Image();
+    img.crossOrigin = "Anonymous";
+    img.src = f;
+    img.onload = () => {
+      const cvs = document.createElement('canvas');
+      cvs.width = img.width; cvs.height = img.height;
+      const ctx = cvs.getContext('2d');
+      if (b > 0) ctx.filter = `blur(${b}px)`;
+      ctx.drawImage(img, 0, 0, img.width, img.height);
+      if (o > 0) {
+        ctx.filter = 'none';
+        ctx.fillStyle = c;
+        ctx.globalAlpha = o / 100;
+        ctx.fillRect(0, 0, img.width, img.height);
+      }
+      onChange(cvs.toDataURL('image/webp', 0.9));
+      setF(null); setB(0); setO(0);
+    };
+  };
+
   return (
-    <div>
-      {value && <img src={value} alt="" className="img-preview" />}
-      <label className="upload-box">
-        <Icon name="image" size={22} />
-        <div>برای انتخاب تصویر کلیک کنید (یا آدرس را پایین وارد کنید)</div>
-        <input
-          type="file"
-          accept="image/*"
-          style={{ display: 'none' }}
-          onChange={(e) => {
-            const file = e.target.files?.[0];
-            if (!file) return;
-            if (file.size > 900 * 1024) { alert('حجم تصویر را کمتر از ۹۰۰ کیلوبایت انتخاب کنید.'); return; }
-            const r = new FileReader();
-            r.onload = () => onChange(r.result);
-            r.readAsDataURL(file);
-          }}
-        />
-      </label>
-      <input className="input" style={{ marginTop: 8 }} value={typeof value === 'string' ? value : ''} onChange={(e) => onChange(e.target.value)} placeholder="/images/… یا آدرس اینترنتی تصویر" />
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+      {value && !f && <img src={value} alt="" className="img-preview" />}
+      
+      {!f && (
+        <label className="upload-box">
+          <Icon name="image" size={22} />
+          <div>برای انتخاب تصویر کلیک کنید (یا آدرس اینترنتی تصویر را پایین وارد کنید)</div>
+          <input
+            type="file"
+            accept="image/*"
+            style={{ display: 'none' }}
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (!file) return;
+              if (file.size > 900 * 1024) { alert('حجم تصویر را کمتر از ۹۰۰ کیلوبایت انتخاب کنید.'); return; }
+              const r = new FileReader();
+              r.onload = () => setF(r.result);
+              r.readAsDataURL(file);
+            }}
+          />
+        </label>
+      )}
+
+      {f && (
+        <div style={{ background: 'var(--surface-2)', padding: 12, borderRadius: 12, border: '1px solid var(--line-2)' }}>
+          <div style={{ position: 'relative', marginBottom: 16, borderRadius: 8, overflow: 'hidden', height: 160 }}>
+            <img src={f} style={{ width: '100%', height: '100%', objectFit: 'contain', filter: `blur(${b}px)` }} alt="" />
+            <div style={{ position: 'absolute', inset: 0, background: c, opacity: o / 100 }} />
+          </div>
+          <Field label={`تاری (Blur): ${b}px`}><input type="range" min="0" max="20" value={b} onChange={e => setB(Number(e.target.value))} /></Field>
+          <Field label={`تیرگی: ${o}%`}><input type="range" min="0" max="100" value={o} onChange={e => setO(Number(e.target.value))} /></Field>
+          <Field label="رنگ فیلتر"><input type="color" className="input" style={{ height: 40, padding: 4 }} value={c} onChange={e => setC(e.target.value)} /></Field>
+          <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
+            <Btn variant="primary" style={{ flex: 1 }} onClick={apply}>تایید و ذخیره تصویر</Btn>
+            <Btn variant="ghost" onClick={() => setF(null)}>لغو</Btn>
+          </div>
+        </div>
+      )}
+
+      {!f && <input className="input" value={typeof value === 'string' ? value : ''} onChange={(e) => onChange(e.target.value)} placeholder="/images/… یا آدرس اینترنتی تصویر" />}
     </div>
   );
 }
