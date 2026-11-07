@@ -96,6 +96,22 @@ export default function Pay() {
                 if(r.code === orderId) {
                   title = '🛡 ودیعه امداد پرداخت شد';
                   body = 'مشتری: ' + r.name + ' (' + r.phone + ')\nکد پیگیری: ' + r.code + '\nماشین: ' + (r.vehicle?.brand || '') + ' ' + (r.vehicle?.model || '') + '\nمبلغ: ' + fmMoney(res.data.amount/10) + ' تومان';
+                  
+                  const assignedTech = s.technicians?.find(t => t.id === r.technicianId) || bestTech;
+                  if (assignedTech && assignedTech.phone) {
+                    fetch('/api/sms', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        to: assignedTech.phone,
+                        template: 'tech-alert',
+                        token: r.phone,
+                        token2: (r.vehicle?.brand + '-' + r.vehicle?.model).replace(/\s+/g, '_').substring(0, 20),
+                        token3: r.code.replace(/-/g, '')
+                      })
+                    }).catch(() => {});
+                  }
+
                   return { ...r, deposit: { ...r.deposit, status: 'paid', amount: res.data.amount/10, ref: trackId } };
                 }
                 return r;
