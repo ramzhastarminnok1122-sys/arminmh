@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { useSearchParams, Link } from 'react-router-dom';
+import { useSearchParams, Link, useNavigate } from 'react-router-dom';
 import { useStore } from '../lib/store';
 import { Btn, Icon, Badge, Empty } from '../components/ui';
 import { cn, toFa, fmtToman, normPhone, uid, dt, getBestTech } from '../lib/utils';
@@ -8,6 +8,7 @@ import { notifyOwner, fmMoney } from '../lib/notify';
 export default function Pay() {
   const { state, update, toast, validateDiscountCode } = useStore();
   const [sp, setSp] = useSearchParams();
+  const nav = useNavigate();
 
   // پشتیبانی هوشمند از پارامترهای URL و همچنین انتخاب خودکار آخرین فاکتور در صورت ورود مستقیم به /pay
   const paramOrder = sp.get('order');
@@ -107,12 +108,19 @@ export default function Pay() {
               });
             }
             
+
             if(title) {
               notifyOwner(ns, { title, body });
             }
             
             return ns;
           });
+          
+          setTimeout(() => {
+            if (vKind === 'order' && orderId) nav('/account');
+            else if (orderId) nav('/track/' + orderId);
+          }, 2000);
+
 
         } else {
           setGatewayModal(null);
