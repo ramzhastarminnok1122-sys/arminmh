@@ -243,7 +243,7 @@ export default function Pay() {
 
     setGatewayModal('connecting');
 
-    try {
+try {
       const orderId = (order ? order.id : req.code) || 'REQ-' + Date.now();
       const callbackUrl = window.location.origin + window.location.pathname + '#/pay?verify=1&kind=' + kind + '&orderId=' + orderId;
       const res = await fetch('/api/zibal/request', {
@@ -261,11 +261,11 @@ export default function Pay() {
         window.location.href = 'https://gateway.zibal.ir/start/' + data.data.trackId;
       } else {
         setGatewayModal(null);
-        toast('خطا در اتصال به زیبال: ' + (data.data?.message || data.error || 'نامشخص'), 'error');
+        toast('خطا در اتصال به زیبال: ' + (data.data?.message || data.error || JSON.stringify(data)), 'error');
       }
     } catch (e) {
       setGatewayModal(null);
-      toast('خطا در برقراری ارتباط با سرور پرداخت.', 'error');
+      toast('خطا در برقراری ارتباط با سرور پرداخت. ' + String(e), 'error');
     }
   };
 
