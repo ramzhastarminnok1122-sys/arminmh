@@ -185,6 +185,44 @@ export default function Settings() {
         <Btn variant="dark" icon="check" onClick={savePw}>تغییر رمز</Btn>
       </div>
 
+      <div className="admin-panel" style={{ borderColor: 'var(--brand)' }}>
+        <div className="panel-head">
+          <div><h2 style={{ color: 'var(--brand)' }}>پشتیبان‌گیری و بازیابی اطلاعات</h2><p>دانلود کل اطلاعات سایت (تنظیمات، آفرها، تصاویر و...) به عنوان یک فایل امن، و یا بازگردانی آن‌ها</p></div>
+        </div>
+        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+          <Btn variant="primary" icon="download" onClick={() => {
+            const blob = new Blob([JSON.stringify(state)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `emdadbattery-backup-${new Date().toISOString().slice(0,10)}.json`;
+            a.click();
+          }}>دانلود فایل بکاپ کامل</Btn>
+          
+          <label className="btn btn-outline-dark">
+            <Icon name="upload" /> بازیابی فایل بکاپ
+            <input type="file" accept=".json" style={{ display: 'none' }} onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (!file) return;
+              const r = new FileReader();
+              r.onload = () => {
+                try {
+                  const data = JSON.parse(r.result);
+                  if (data && data.settings) {
+                    if(window.confirm('آیا از بازگردانی اطلاعات مطمئن هستید؟ اطلاعات فعلی کاملا جایگزین خواهند شد.')) {
+                      update(() => data);
+                      toast('اطلاعات با موفقیت بازیابی شد.');
+                      setTimeout(() => window.location.reload(), 1500);
+                    }
+                  } else toast('فایل بکاپ نامعتبر است', 'error');
+                } catch { toast('خطا در خواندن فایل', 'error'); }
+              };
+              r.readAsText(file);
+            }} />
+          </label>
+        </div>
+      </div>
+
       <div className="admin-panel" style={{ borderColor: 'rgba(238,58,44,.4)' }}>
         <div className="panel-head">
           <div><h2 style={{ color: 'var(--red)' }}>بازنشانی داده‌ها</h2><p>برگرداندن همه اطلاعات سایت به وضعیت اولیه</p></div>
