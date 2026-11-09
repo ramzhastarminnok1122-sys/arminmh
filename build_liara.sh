@@ -167,7 +167,7 @@ PKG
 
 cat << 'LIARA' > liara_build/liara.json
 {
-  "app": "emdadbattery",
+  "app": "emdad-battery",
   "platform": "node",
   "port": 3000,
   "disks": [
