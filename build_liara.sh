@@ -33,9 +33,13 @@ app.get('/api/db', (req, res) => {
 });
 
 app.post('/api/db', (req, res) => {
-  fs.writeFile(DB_FILE, JSON.stringify(req.body), (err) => {
+  const tempFile = DB_FILE + '.tmp';
+  fs.writeFile(tempFile, JSON.stringify(req.body), (err) => {
     if (err) return res.status(500).json({ ok: false, error: err.message });
-    res.json({ ok: true });
+    fs.rename(tempFile, DB_FILE, (err2) => {
+      if (err2) return res.status(500).json({ ok: false, error: err2.message });
+      res.json({ ok: true });
+    });
   });
 });
 
