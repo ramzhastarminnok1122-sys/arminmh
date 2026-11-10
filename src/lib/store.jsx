@@ -13,41 +13,49 @@ export const LABEL = {
   approved: 'تایید و پرداخت شد'
 };
 
+function deepMerge(target, source) {
+  if (typeof target !== 'object' || target === null) return source;
+  if (typeof source !== 'object' || source === null) return target;
+  if (Array.isArray(target) || Array.isArray(source)) return source;
+
+  const out = { ...target };
+  for (const key of Object.keys(source)) {
+    if (source[key] !== undefined) {
+      if (typeof source[key] === 'object' && source[key] !== null && !Array.isArray(source[key])) {
+        out[key] = deepMerge(target[key] || {}, source[key]);
+      } else {
+        out[key] = source[key];
+      }
+    }
+  }
+  return out;
+}
+
 function migrate(s) {
   const base = seed();
-  const mergedOffers = (s.offers && s.offers.length ? s.offers : base.offers).map((o, idx) => {
-    const fallback = base.offers[idx] || base.offers[0] || {};
-    const endTs = Number(o.end || fallback.end || Date.now() + 7 * 86400000);
-    return {
-      ...fallback,
+  
+  const state = deepMerge(base, s);
+  state.__v = 3;
+
+  // Ensure offers have mandatory calculated fields
+  if (state.offers) {
+    state.offers = state.offers.map(o => ({
       ...o,
-      code: (o.code || fallback.code || `CHB${(idx + 1) * 10}`).toUpperCase(),
-      discountPercent: Number(o.discountPercent ?? fallback.discountPercent ?? 15),
-      oldPrice: o.oldPrice ?? fallback.oldPrice ?? null,
-      newPrice: o.newPrice ?? fallback.newPrice ?? null,
-      end: endTs,
-      expiresAt: o.expiresAt || new Date(endTs).toISOString()
-    };
-  });
+      code: (o.code || `CHB15`).toUpperCase(),
+      discountPercent: Number(o.discountPercent ?? 15),
+      end: o.end || Date.now() + 7 * 86400000
+    }));
+  }
 
-  const mergedBatteries = (s.batteries && s.batteries.length ? s.batteries : base.batteries).map((b, idx) => {
-    const fb = base.batteries.find((x) => x.id === b.id) || base.batteries[idx] || {};
-    return {
-      ...fb,
+  // Ensure batteries have oldPrice
+  if (state.batteries) {
+    state.batteries = state.batteries.map(b => ({
       ...b,
-      oldPrice: b.oldPrice || fb.oldPrice || Math.round((Number(b.price || fb.price || 0) * 1.12) / 10000) * 10000
-    };
-  });
+      oldPrice: b.oldPrice || Math.round((Number(b.price || 0) * 1.12) / 10000) * 10000
+    }));
+  }
 
-  return {
-    ...base,
-    ...s,
-    __v: 3,
-    offers: mergedOffers,
-    batteries: mergedBatteries,
-    settings: { ...base.settings, ...(s.settings || {}) },
-    homeContent: { ...base.homeContent, ...(s.homeContent || {}) }
-  };
+  return state;
 }
 
 function loadLocal() {
