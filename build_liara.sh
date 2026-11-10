@@ -179,8 +179,12 @@ cat << 'LIARA' > liara_build/liara.json
 }
 LIARA
 
+cat << 'NGINX' > liara_build/liara_nginx.conf
+client_max_body_size 50M;
+NGINX
+
 cd liara_build
 rm -f ../site-for-liara.zip
-zip -r ../site-for-liara.zip dist server.js package.json liara.json
+zip -r ../site-for-liara.zip dist server.js package.json liara.json liara_nginx.conf
 cd ..
 rm -rf liara_build
