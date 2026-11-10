@@ -132,7 +132,7 @@ export function StoreProvider({ children }) {
 
   // Fetch initial state from remote server
   useEffect(() => {
-    fetch('/api/db')
+    fetch('/api/db?t=' + Date.now())
       .then(r => r.json())
       .then(remoteState => {
         if (remoteState && remoteState.__v) {
@@ -146,6 +146,14 @@ export function StoreProvider({ children }) {
       });
   }, []);
 
+  const [toasts, setToasts] = useState([]);
+
+  const toast = (msg, type = 'success') => {
+    const id = uid();
+    setToasts((t) => [...t, { id, msg, type }]);
+    setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), 4200);
+  };
+
   // Save to remote server whenever state changes
   useEffect(() => {
     if (!isLoaded) return;
@@ -155,16 +163,14 @@ export function StoreProvider({ children }) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(state)
+      }).then(r => {
+        if (!r.ok) {
+          console.error('Server DB save rejected with status', r.status);
+          if (r.status === 413) toast('خطا: حجم اطلاعات (تصاویر) برای ذخیره بسیار زیاد است!', 'error');
+        }
       }).catch(e => console.warn('Failed to save to remote DB', e));
     } catch (e) { /* ignore */ }
   }, [state, isLoaded]);
-  const [toasts, setToasts] = useState([]);
-
-  const toast = (msg, type = 'success') => {
-    const id = uid();
-    setToasts((t) => [...t, { id, msg, type }]);
-    setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), 4200);
-  };
 
   const update = (fn) => setState((prev) => fn(prev));
   const upsert = (coll, item) => update((s) => {
@@ -247,7 +253,7 @@ export function StoreProvider({ children }) {
   useEffect(() => {
     if (!isLoaded) return;
     const interval = setInterval(() => {
-      fetch('/api/db')
+      fetch('/api/db?t=' + Date.now())
         .then(r => r.json())
         .then(remoteState => {
           if (remoteState && remoteState.__v) {
