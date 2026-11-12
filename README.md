@@ -1,43 +1,16 @@
-# امداد باطری شبانه‌روزی چابهار — وب‌سایت + پنل مدیریت
+# React + Vite
 
-دموی کاملاً کاربردی و واقعی‌نما؛ React + Vite + React Router، تماماً فارسی و RTL.
+This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
 
-## اجرا
+Currently, two official plugins are available:
 
-```bash
-npm install
-npm run dev        # حالت توسعه → http://localhost:5173
-npm run build      # بیلد نسخه نهایی در پوشه dist
-npm run preview    # اجرای نسخه نهایی → http://localhost:4173
-```
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
 
-## دسترسی‌ها
+## React Compiler
 
-- **پنل مدیریت:** `/admin/login` — رمز پیش‌فرض: `123654` (قابل تغییر در تنظیمات)
-- **پنل امدادگر:** `/tech/login` — انتخاب امدادگر + رمز پیش‌فرض: `1234` (قابل تغییر در ماژول امدادگران)
-- **پنل صاحب‌کار:** `/owner` — فقط‌خواندنی؛ دیدن امدادها/سفارش‌ها/فیش‌ها + زنگ و اعلان (ntfy + پیامک کاوه‌نگار از طریق api/sms.js). رمز در settings.ownerPw
-- **حساب مشتری:** `/auth` — ثبت‌نام با نام + شماره موبایل (اعتبارسنجی زنده) + رمز عبور
+The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
 
-## مسیرها
+## Expanding the Oxlint configuration
 
-| بخش | مسیرها |
-|---|---|
-| عمومی | `/` ، `/emergency` ، `/track/:code` ، `/services` ، `/batteries` ، `/offers` ، `/areas` ، `/about` ، `/faq` ، `/contact` ، `/reviews` ، `/account` |
-| مدیریت | `/admin/login` ، `/admin` (داشبورد) ، `dispatch` ، `home-content` ، `services` ، `offers` ، `banners` ، `pricing` ، `technicians` ، `areas` ، `reviews` ، `faq` ، `phones` ، `settings` |
-
-## نکات فنی
-
-- همه داده‌ها در `localStorage` (کلید `chb_store_v1`) نگه‌داری می‌شود؛ تغییرات ادمین بلافاصله در سایت مشتری اعمال می‌شود.
-- چرخه زندگی درخواست امداد (ثبت → بررسی → تخصیص → در مسیر → رسید → انجام شد) با یک شبیه‌ساز زمان‌محور جلو می‌رود و در صفحه `/track/:code` به‌صورت زنده (ETA + انیمیشن خودرو روی نقشه) نمایش داده می‌شود.
-- از ثبت شدن دستی وضعیت توسط ادمین (`manualHold`)، شبیه‌ساز دیگر وضعیت را تغییر نمی‌دهد.
-- هیچ قیمتی در کد Hardcode نشده؛ تغییر قیمت باتری در «تاریخچه قیمت» هم ثبت می‌شود.
-- تصاویر داخل `public/images` تولیدی هستند و می‌توانید با فایل‌های واقعی جایگزینشان کنید (همین نام‌ها را نگه دارید).
-- برای بازنشانی کامل داده‌ها: تنظیمات کسب‌وکار → بازنشانی کامل.
-
-
-## انتشار با GitHub + Vercel (پیشنهادی)
-1. محتویات همین پوشه را در یک ریپوی GitHub آپلود کنید (Add file → Upload files → کشیدن همهٔ فایل‌ها).
-2. در vercel.com با حساب GitHub وارد شوید → Add New → Project → Import همان ریپو.
-3. Framework Preset خودکار «Vite» می‌شود → Deploy. تمام؛ آدرس مثل chabahar-battery.vercel.app می‌گیرید.
-- پنل‌ها: `/admin` (رمز در تنظیمات)، `/owner` (رمز مدیر)، `/tech/login` (رمز امدادگر).
-- اعلان ntfy بدون تنظیمات کار می‌کند؛ پیامک کاوه‌نگار: در Vercel → Settings → Environment Variables کلید `SMS_API_KEY` را اضافه کنید (فایل api/sms.js آماده است).
+If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
