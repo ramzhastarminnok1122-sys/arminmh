@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import Lenis from 'lenis';
 import { motion, AnimatePresence, useScroll, useTransform, useSpring } from 'framer-motion';
-import { Sparkles, ArrowLeft, Cpu, ShieldCheck, Layers, ArrowUpRight, Grid, MapPin } from 'lucide-react';
+import { Sparkles, ArrowLeft, Cpu, ShieldCheck, Layers, ArrowUpRight, Grid, MapPin, Globe } from 'lucide-react';
 
 // --- 1. THE 0-100 LOADER ---
 function PageLoader({ onReady }) {
@@ -171,7 +171,7 @@ export default function NeginHome() {
               {[
                 { title: 'درباره نگین باتری', desc: 'آشنایی با خط تولید و استانداردهای جهانی', icon: <Layers size={24} color="#a3e635" /> },
                 { title: 'محصولات در یک نگاه', desc: 'دسترسی سریع به کاتالوگ جامع باتری‌ها', icon: <Cpu size={24} color="#a3e635" /> },
-                { title: 'اخبار و مقالات', desc: 'آخرین رویدادها و دستاوردهای صنعتی', icon: <Globe2 size={24} color="#a3e635" /> },
+                { title: 'اخبار و مقالات', desc: 'آخرین رویدادها و دستاوردهای صنعتی', icon: <Globe size={24} color="#a3e635" /> },
                 { title: 'خدمات پس از فروش', desc: 'استعلام گارانتی و درخواست امداد', icon: <ShieldCheck size={24} color="#a3e635" /> }
               ].map((item, i) => (
                 <motion.div key={i} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-50px" }} transition={{ delay: i * 0.1, duration: 0.6 }} style={{ display: 'flex', gap: '1rem', cursor: 'pointer' }}>
