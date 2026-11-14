@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import Lenis from 'lenis';
-import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
-import { Sparkles, ArrowLeft, Globe2, Layers, Cpu, ShieldCheck } from 'lucide-react';
+import { motion, AnimatePresence, useScroll, useTransform, useSpring } from 'framer-motion';
+import { Sparkles, ArrowLeft, Cpu, ShieldCheck, Layers, ArrowUpRight, Grid, MapPin } from 'lucide-react';
 
 // --- 1. THE 0-100 LOADER ---
 function PageLoader({ onReady }) {
@@ -11,8 +11,6 @@ function PageLoader({ onReady }) {
   useEffect(() => {
     let start = null;
     const duration = 1300;
-
-    // easeInOutCubic
     const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 
     const animate = (timestamp) => {
@@ -27,7 +25,7 @@ function PageLoader({ onReady }) {
       } else {
         setTimeout(() => {
           setExiting(true);
-          setTimeout(() => onReady(), 800); // Wait for exit animation
+          setTimeout(() => onReady(), 800);
         }, 300);
       }
     };
@@ -42,7 +40,7 @@ function PageLoader({ onReady }) {
           exit={{ y: '-100%' }}
           transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
           style={{
-            position: 'fixed', inset: 0, zIndex: 9999, background: '#050b14', color: '#fff',
+            position: 'fixed', inset: 0, zIndex: 9999, background: '#0a0a0a', color: '#fff',
             display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
             gap: '2rem', borderRadius: '0 0 2rem 2rem'
           }}
@@ -54,7 +52,7 @@ function PageLoader({ onReady }) {
 
           <motion.div exit={{ opacity: 0 }} transition={{ duration: 0.3 }} style={{ width: 'min(22rem, 72vw)' }}>
             <div style={{ height: '1px', background: 'rgba(255,255,255,0.15)', marginBottom: '1rem', position: 'relative' }}>
-              <div style={{ position: 'absolute', top: 0, left: 0, height: '100%', background: '#a3e635', width: `${progress}%`, transition: 'width 0.1s ease-out' }} />
+              <div style={{ position: 'absolute', top: 0, right: 0, height: '100%', background: '#a3e635', width: `${progress}%`, transition: 'width 0.1s ease-out' }} />
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: 'rgba(255,255,255,0.5)' }}>
               <span>در حال بارگذاری سیستم</span>
@@ -67,175 +65,50 @@ function PageLoader({ onReady }) {
   );
 }
 
-// --- 2. LIQUID REVEAL HERO CANVAS ---
-function LiquidHero({ isReady }) {
-  const canvasRef = useRef(null);
-  const containerRef = useRef(null);
-
-  useEffect(() => {
-    if (!canvasRef.current || !containerRef.current) return;
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d', { willReadFrequently: true });
-    
-    let w, h;
-    let points = [];
-    let isDrawing = false;
-    let idleFrames = 0;
-
-    // Load Images
-    const beforeImg = new Image(); // The dark version (CSS filter applied to base)
-    const afterImg = new Image();  // The bright/neon version
-    
-    // We'll simulate the before/after by drawing the same image but the canvas will hold the "bright" version
-    // while the CSS background holds the "dark" version.
-    afterImg.src = '/negin-battery-master.png';
-
-    const resize = () => {
-      w = containerRef.current.offsetWidth;
-      h = containerRef.current.offsetHeight;
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      canvas.width = w * dpr;
-      canvas.height = h * dpr;
-      canvas.style.width = `${w}px`;
-      canvas.style.height = `${h}px`;
-      ctx.scale(dpr, dpr);
-    };
-    
-    window.addEventListener('resize', resize);
-    resize();
-
-    // Brush Settings
-    const radius = 150;
-    const decay = 0.015;
-
-    const onPointerMove = (e) => {
-      const rect = canvas.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-      points.push({ x, y });
-      isDrawing = true;
-    };
-
-    window.addEventListener('pointermove', onPointerMove);
-
-    const render = () => {
-      if (points.length > 0) {
-        idleFrames = 0;
-      } else {
-        idleFrames++;
-      }
-
-      // Decay existing canvas
-      const fade = isDrawing ? decay : Math.min(decay + idleFrames * 0.005, 0.5);
-      ctx.globalCompositeOperation = 'destination-out';
-      ctx.fillStyle = `rgba(0,0,0,${fade})`;
-      ctx.fillRect(0, 0, w, h);
-
-      // Draw new brush strokes
-      if (points.length > 0) {
-        ctx.globalCompositeOperation = 'source-over';
-        
-        points.forEach((p) => {
-          // 1. Create a radial gradient for soft brush
-          const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, radius);
-          grad.addColorStop(0, 'rgba(255,255,255,1)');
-          grad.addColorStop(0.5, 'rgba(255,255,255,0.6)');
-          grad.addColorStop(1, 'rgba(255,255,255,0)');
-          
-          // 2. Draw the gradient mask
-          ctx.fillStyle = grad;
-          ctx.beginPath();
-          ctx.arc(p.x, p.y, radius, 0, Math.PI * 2);
-          ctx.fill();
-
-          // 3. Composite the brightly lit image INTO the brush mask
-          ctx.globalCompositeOperation = 'source-in';
-          if (afterImg.complete) {
-            // Draw image covering the whole canvas, but it only appears inside the brush stroke
-            // Scale to cover
-            const imgRatio = afterImg.width / afterImg.height;
-            const canvasRatio = w / h;
-            let drawW = w;
-            let drawH = h;
-            let offsetX = 0;
-            let offsetY = 0;
-
-            if (imgRatio > canvasRatio) {
-              drawW = h * imgRatio;
-              offsetX = (w - drawW) / 2;
-            } else {
-              drawH = w / imgRatio;
-              offsetY = (h - drawH) / 2;
-            }
-            
-            ctx.drawImage(afterImg, offsetX, offsetY, drawW, drawH);
-          }
-          
-          // Reset to standard over for next points
-          ctx.globalCompositeOperation = 'source-over';
-        });
-        
-        points = [];
-        isDrawing = false;
-      }
-
-      // Hard clear to save GPU when totally idle
-      if (idleFrames === 120) {
-        ctx.clearRect(0, 0, w, h);
-      }
-
-      requestAnimationFrame(render);
-    };
-    
-    render();
-
-    return () => {
-      window.removeEventListener('resize', resize);
-      window.removeEventListener('pointermove', onPointerMove);
-    };
-  }, []);
-
+// --- HEADER (OVERLAY) ---
+function Header({ ready }) {
   return (
-    <div ref={containerRef} style={{ position: 'absolute', inset: 0, overflow: 'hidden' }}>
-      {/* 1. Base Image (Darkened via CSS) */}
-      <div 
-        style={{
-          position: 'absolute', inset: 0,
-          backgroundImage: 'url(/negin-battery-master.png)',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          filter: 'brightness(0.2) contrast(1.2) grayscale(0.2)', // Make it night-time cinematic
-          zIndex: 1
-        }}
-      />
-      {/* 2. Liquid Brush Canvas (Reveals the bright original image) */}
-      <canvas ref={canvasRef} style={{ position: 'absolute', inset: 0, zIndex: 2, pointerEvents: 'none' }} />
-      
-      {/* 3. Shadow Gradient for text legibility */}
-      <div style={{ position: 'absolute', inset: 0, zIndex: 3, background: 'linear-gradient(to top, #050b14 0%, transparent 60%)' }} />
-    </div>
+    <motion.header
+      initial={{ opacity: 0, y: -20 }}
+      animate={ready ? { opacity: 1, y: 0 } : {}}
+      transition={{ duration: 0.8, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+      style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100, padding: '1.5rem 2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+    >
+      <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#fff', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        <div style={{ width: '1.5rem', height: '1.5rem', background: '#a3e635', borderRadius: '4px' }}></div>
+        نگین باتری
+      </div>
+
+      <nav style={{ display: 'flex', gap: '2rem', color: 'rgba(255,255,255,0.8)', fontSize: '0.875rem', fontWeight: 500 }}>
+        <a href="#products" style={{ cursor: 'pointer' }}>محصولات</a>
+        <a href="#agencies" style={{ cursor: 'pointer' }}>نمایندگان</a>
+        <a href="#about" style={{ cursor: 'pointer' }}>درباره ما</a>
+        <a href="#contact" style={{ cursor: 'pointer' }}>تماس با ما</a>
+      </nav>
+
+      <button style={{ background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.2)', color: '#fff', padding: '0.5rem 1rem', borderRadius: '0.75rem', fontSize: '0.875rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        <Grid size={16} /> پنل کاربری B2B
+      </button>
+    </motion.header>
   );
 }
 
 // --- MAIN PAGE COMPONENT ---
 export default function NeginHome() {
   const [ready, setReady] = useState(false);
-  const { scrollYProgress } = useScroll();
+  const containerRef = useRef(null);
+  const { scrollYProgress } = useScroll({ target: containerRef });
   
-  // Parallax the hero header text
-  const heroY = useTransform(scrollYProgress, [0, 0.3], [0, -150]);
-  const heroOpacity = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
+  // Parallax the hero background
+  const yBg = useTransform(scrollYProgress, [0, 0.3], ['0%', '20%']);
+  const opacityHero = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
 
   useEffect(() => {
-    // Initialize Lenis
+    window.scrollTo(0, 0);
     const lenis = new Lenis({ smoothWheel: true, duration: 1.2 });
     
-    // Lock scroll until ready
-    if (!ready) {
-      lenis.stop();
-    } else {
-      lenis.start();
-    }
+    if (!ready) lenis.stop();
+    else lenis.start();
 
     function raf(time) {
       lenis.raf(time);
@@ -243,138 +116,100 @@ export default function NeginHome() {
     }
     requestAnimationFrame(raf);
 
-    // Adaptive Grid logic
-    const applyAdaptiveGrid = () => {
-      const w = window.innerWidth;
-      const base = 1920;
-      if (w > base) {
-        const reduction = ((base - w) / base) * 100;
-        const size = 16 - (16 * (reduction * 0.6666)) / 100;
-        document.documentElement.style.fontSize = size + 'px';
-      }
-    };
-    applyAdaptiveGrid();
-    window.addEventListener('resize', applyAdaptiveGrid);
-
-    return () => {
-      lenis.destroy();
-      window.removeEventListener('resize', applyAdaptiveGrid);
-    };
+    return () => lenis.destroy();
   }, [ready]);
 
   return (
     <>
-      {/* LOADER */}
       {!ready && <PageLoader onReady={() => setReady(true)} />}
+      
+      <div ref={containerRef} style={{ background: '#0a0a0a', minHeight: '200vh' }}>
+        <Header ready={ready} />
 
-      <main style={{ background: '#050b14' }}>
-        {/* HERO SECTION */}
-        <section style={{ height: '110vh', position: 'relative' }}>
-          {/* Background Liquid Engine */}
-          <LiquidHero isReady={ready} />
-
-          {/* Hero Content Overlays */}
+        {/* 1. CINEMATIC HERO */}
+        <section style={{ height: '110vh', position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '0 4rem' }}>
+          {/* Background Image */}
           <motion.div 
             style={{ 
-              position: 'absolute', inset: 0, zIndex: 10, display: 'flex', flexDirection: 'column', 
-              justifyContent: 'center', padding: '0 4rem',
-              y: heroY, opacity: heroOpacity
-            }}
-          >
-            <div style={{ maxWidth: '88rem', margin: '0 auto', width: '100%' }}>
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }} animate={ready ? { opacity: 1, y: 0 } : {}} transition={{ delay: 0.2, duration: 0.8 }}
-                style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem', color: '#a3e635', marginBottom: '1.5rem', background: 'rgba(163,230,53,0.1)', padding: '0.5rem 1rem', borderRadius: '2rem', border: '1px solid rgba(163,230,53,0.2)' }}
-              >
-                <Sparkles size={16} /> نسل جدید ذخیره‌سازهای صنعتی
-              </motion.div>
-              
-              <h1 style={{ fontSize: 'clamp(3rem, 6vw, 5.5rem)', fontWeight: 900, color: '#fff', lineHeight: 1.1, textShadow: '0 10px 40px rgba(0,0,0,0.8)' }}>
-                <motion.span initial={{ opacity: 0, y: 40 }} animate={ready ? { opacity: 1, y: 0 } : {}} transition={{ delay: 0.3, duration: 0.8, ease: [0.215, 0.61, 0.355, 1] }} style={{ display: 'block' }}>
-                  ایده‌های بزرگ،
-                </motion.span>
-                <motion.span initial={{ opacity: 0, y: 40 }} animate={ready ? { opacity: 1, y: 0 } : {}} transition={{ delay: 0.4, duration: 0.8, ease: [0.215, 0.61, 0.355, 1] }} style={{ display: 'block' }}>
-                  ساخته شده با <span style={{ color: '#a3e635' }}>دقت بی‌صدا.</span>
-                </motion.span>
-              </h1>
+              position: 'absolute', inset: -50, zIndex: 0, y: yBg,
+              backgroundImage: 'url(/negin-battery-master.png)', backgroundSize: 'cover', backgroundPosition: 'center',
+              filter: 'brightness(0.35) contrast(1.2)'
+            }} 
+          />
+          {/* Bottom Gradient Fade to White Section */}
+          <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '30vh', background: 'linear-gradient(to top, #ffffff 0%, transparent 100%)', zIndex: 1 }} />
 
-              <motion.p 
-                initial={{ opacity: 0 }} animate={ready ? { opacity: 1 } : {}} transition={{ delay: 0.7 }}
-                style={{ fontSize: '1.25rem', color: 'rgba(255,255,255,0.6)', maxWidth: '35rem', marginTop: '2rem', lineHeight: 1.8 }}
-              >
-                نگین باتری، طراح و سازنده پیشرفته‌ترین سیستم‌های ذخیره انرژی در ایران. با تضمین طول عمر و تاب‌آوری در سخت‌ترین شرایط آب و هوایی.
-              </motion.p>
-            </div>
-          </motion.div>
+          <motion.div style={{ position: 'relative', zIndex: 10, maxWidth: '88rem', margin: '0 auto', width: '100%', opacity: opacityHero }}>
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }} animate={ready ? { opacity: 1, y: 0 } : {}} transition={{ delay: 0.3, duration: 0.8 }}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', color: '#a3e635', marginBottom: '1.5rem', background: 'rgba(163,230,53,0.1)', padding: '0.5rem 1rem', borderRadius: '2rem', border: '1px solid rgba(163,230,53,0.2)' }}
+            >
+              <Sparkles size={16} /> نسل جدید ذخیره‌سازهای صنعتی
+            </motion.div>
+            
+            <h1 style={{ fontSize: 'clamp(3rem, 6vw, 5.5rem)', fontWeight: 900, color: '#fff', lineHeight: 1.1, textShadow: '0 10px 40px rgba(0,0,0,0.8)' }}>
+              ایده‌های بزرگ،<br/>
+              ساخته شده با <span style={{ color: '#a3e635' }}>دقت بی‌صدا.</span>
+            </h1>
 
-          {/* Huge background watermark text */}
-          <motion.div 
-            initial={{ opacity: 0, y: 50 }} animate={ready ? { opacity: 0.03, y: 0 } : {}} transition={{ delay: 0.5, duration: 1.5 }}
-            style={{ position: 'absolute', bottom: '-4rem', left: 0, right: 0, textAlign: 'center', fontSize: '18vw', fontWeight: 900, color: '#fff', zIndex: 5, pointerEvents: 'none', userSelect: 'none' }}
-          >
-            NEGIN
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }} animate={ready ? { opacity: 1, y: 0 } : {}} transition={{ delay: 0.6, duration: 0.8 }}
+              style={{ display: 'flex', gap: '1rem', marginTop: '3rem' }}
+            >
+              <button style={{ background: '#a3e635', color: '#0a0a0a', padding: '1rem 2rem', borderRadius: '9999px', fontSize: '1rem', fontWeight: 700 }}>درخواست همکاری B2B</button>
+              <button style={{ background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(10px)', color: '#fff', padding: '1rem 2rem', borderRadius: '9999px', fontSize: '1rem', fontWeight: 600, border: '1px solid rgba(255,255,255,0.2)' }}>مشاهده محصولات</button>
+            </motion.div>
           </motion.div>
         </section>
 
-        {/* BRIGHT CORPORATE BODY SECTION */}
-        <section style={{ 
-          position: 'relative', zIndex: 20, background: '#ffffff', color: '#111',
-          borderRadius: '2.5rem 2.5rem 0 0', marginTop: '-10vh',
-          padding: '8rem 2rem', boxShadow: '0 -20px 50px rgba(0,0,0,0.5)'
-        }}>
+        {/* 2. CORPORATE BODY (WHITE) - PRODUCTS & FEATURES */}
+        <section id="products" style={{ position: 'relative', zIndex: 20, background: '#ffffff', borderRadius: '2.5rem 2.5rem 0 0', marginTop: '-15vh', padding: '8rem 2rem' }}>
           <div style={{ maxWidth: '88rem', margin: '0 auto' }}>
             
-            {/* Value Proposition Band */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '2rem', marginBottom: '8rem' }}>
+            {/* SEPAHAN STYLE: Horizontal Feature Menu (About / Tech / News) */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '2rem', marginBottom: '8rem', borderBottom: '1px solid #e6e5e2', paddingBottom: '4rem' }}>
               {[
-                { icon: <Cpu size={32} />, title: "تکنولوژی روز دنیا", desc: "استفاده از صفحات کلسیم-کلسیم اکسپندد برای کاهش افت ولتاژ." },
-                { icon: <ShieldCheck size={32} />, title: "گارانتی شرکتی بی‌قید", desc: "ضمانت تعویض سریع در بیش از ۳۰۰ نماینده فعال در سراسر کشور." },
-                { icon: <Layers size={32} />, title: "تنوع آمپراژ", desc: "از ۳۵ آمپر تا ۲۲۰ آمپر، مناسب برای خودروهای سبک و سنگین." }
+                { title: 'درباره نگین باتری', desc: 'آشنایی با خط تولید و استانداردهای جهانی', icon: <Layers size={24} color="#a3e635" /> },
+                { title: 'محصولات در یک نگاه', desc: 'دسترسی سریع به کاتالوگ جامع باتری‌ها', icon: <Cpu size={24} color="#a3e635" /> },
+                { title: 'اخبار و مقالات', desc: 'آخرین رویدادها و دستاوردهای صنعتی', icon: <Globe2 size={24} color="#a3e635" /> },
+                { title: 'خدمات پس از فروش', desc: 'استعلام گارانتی و درخواست امداد', icon: <ShieldCheck size={24} color="#a3e635" /> }
               ].map((item, i) => (
-                <motion.div 
-                  key={i}
-                  initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-100px" }} transition={{ delay: i * 0.1, duration: 0.6 }}
-                  style={{ background: '#f8fafc', padding: '3rem 2rem', borderRadius: '1.5rem', border: '1px solid #e2e8f0' }}
-                >
-                  <div style={{ color: '#00E676', marginBottom: '1.5rem' }}>{item.icon}</div>
-                  <h3 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '1rem', color: '#0f172a' }}>{item.title}</h3>
-                  <p style={{ color: '#64748b', lineHeight: 1.7 }}>{item.desc}</p>
+                <motion.div key={i} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-50px" }} transition={{ delay: i * 0.1, duration: 0.6 }} style={{ display: 'flex', gap: '1rem', cursor: 'pointer' }}>
+                  <div style={{ width: '3rem', height: '3rem', borderRadius: '0.75rem', background: '#0a0a0a', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    {item.icon}
+                  </div>
+                  <div>
+                    <h4 style={{ fontSize: '1.125rem', fontWeight: 700, color: '#0a0a0a', marginBottom: '0.25rem' }}>{item.title}</h4>
+                    <p style={{ fontSize: '0.875rem', color: '#64748b' }}>{item.desc}</p>
+                  </div>
                 </motion.div>
               ))}
             </div>
 
-            {/* Title for Products */}
-            <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} style={{ textAlign: 'center', marginBottom: '4rem' }}>
-              <div style={{ display: 'inline-block', border: '1px solid #e2e8f0', borderRadius: '9999px', padding: '0.5rem 1.5rem', fontSize: '0.875rem', fontWeight: 600, color: '#64748b', marginBottom: '1rem' }}>
-                دسته‌بندی محصولات
-              </div>
-              <h2 style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', fontWeight: 800, letterSpacing: '-0.02em', color: '#0a0a0a' }}>تأمین انرژی؛ از خودرو تا صنعت</h2>
-            </motion.div>
+            {/* PRODUCT SHOWCASE (Dark Cards) */}
+            <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
+              <h2 style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', fontWeight: 800, color: '#0a0a0a', marginBottom: '1rem' }}>تأمین انرژی؛ از خودرو تا صنعت</h2>
+              <p style={{ fontSize: '1.125rem', color: '#64748b' }}>سبد محصولات متنوع نگین باتری برای کاربردهای مختلف</p>
+            </div>
 
-            {/* Dark Ink Product Cards (Lumora Style) */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem' }}>
               {[
                 { title: 'باتری خودرو سبک', tags: ['سواری', 'شاسی‌بلند'] },
-                { title: 'باتری خودرو سنگین', tags: ['کامیون', 'اتوبوس', 'کشاورزی'] },
+                { title: 'باتری خودرو سنگین', tags: ['کامیون', 'اتوبوس'] },
                 { title: 'باتری یو‌پی‌اس', tags: ['دیتاسنتر', 'صنعتی'] },
                 { title: 'باتری خورشیدی', tags: ['نیروگاه', 'تجدیدپذیر'] }
               ].map((card, i) => (
                 <motion.article 
                   key={i}
                   initial={{ opacity: 0, y: 50 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-50px" }} transition={{ delay: i * 0.1, duration: 0.6 }}
-                  whileHover={{ y: -8, scale: 1.01 }}
-                  style={{ 
-                    position: 'relative', height: '24rem', borderRadius: '2rem', background: '#0a0a0a', 
-                    padding: '2rem', color: '#fff', overflow: 'hidden', cursor: 'pointer',
-                    boxShadow: '0 20px 40px rgba(0,0,0,0.1)'
-                  }}
+                  whileHover={{ y: -8, scale: 1.02 }}
+                  style={{ position: 'relative', height: '24rem', borderRadius: '2rem', background: '#0a0a0a', padding: '2rem', color: '#fff', overflow: 'hidden', cursor: 'pointer', boxShadow: '0 20px 40px rgba(0,0,0,0.1)' }}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', color: 'rgba(255,255,255,0.4)', fontSize: '0.875rem' }}>
                     <span>نگین باتری</span>
-                    <ArrowLeft size={20} style={{ transform: 'rotate(45deg)' }} />
+                    <ArrowUpRight size={20} />
                   </div>
                   
-                  {/* Subtle Background Glow */}
                   <div style={{ position: 'absolute', top: '50%', left: '50%', width: '150%', height: '150%', background: 'radial-gradient(circle, rgba(163,230,53,0.1) 0%, transparent 60%)', transform: 'translate(-50%, -50%)', pointerEvents: 'none' }} />
 
                   <div style={{ position: 'absolute', bottom: '2rem', right: '2rem', left: '2rem' }}>
@@ -389,10 +224,35 @@ export default function NeginHome() {
               ))}
             </div>
 
+            {/* SEPAHAN MAP / AGENCY BANNER REPLACEMENT */}
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ duration: 0.8, delay: 0.2 }}
+              style={{ marginTop: '8rem', background: '#f8fafc', borderRadius: '2rem', padding: '4rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', border: '1px solid #e2e8f0', overflow: 'hidden', position: 'relative' }}
+            >
+              <div style={{ position: 'absolute', top: -100, left: -100, width: 300, height: 300, background: 'radial-gradient(circle, rgba(163,230,53,0.2) 0%, transparent 70%)', borderRadius: '50%' }} />
+              
+              <div style={{ position: 'relative', zIndex: 10, maxWidth: '35rem' }}>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', color: '#059669', fontSize: '0.875rem', fontWeight: 700, marginBottom: '1rem', background: 'rgba(5, 150, 105, 0.1)', padding: '0.5rem 1rem', borderRadius: '9999px' }}>
+                  <MapPin size={16} /> شبکه توزیع سراسری
+                </div>
+                <h2 style={{ fontSize: '2.5rem', fontWeight: 800, color: '#0a0a0a', marginBottom: '1rem', lineHeight: 1.2 }}>پوشش قدرتمند در تمامی استان‌های ایران</h2>
+                <p style={{ color: '#64748b', fontSize: '1.125rem', lineHeight: 1.8, marginBottom: '2rem' }}>
+                  با داشتن بیش از ۳۰۰ نماینده فعال در سراسر کشور، محصولات نگین باتری در کوتاه‌ترین زمان ممکن و با ضمانت اصالت کالا به دست شما می‌رسد.
+                </p>
+                <button style={{ background: '#0a0a0a', color: '#fff', padding: '1rem 2rem', borderRadius: '9999px', fontSize: '1rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  مشاهده نقشه نمایندگان <ArrowLeft size={18} />
+                </button>
+              </div>
+              
+              {/* Placeholder for Interactive Iran Map (Next Step) */}
+              <div style={{ width: '400px', height: '400px', background: '#e2e8f0', borderRadius: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8', fontSize: '1.25rem', fontWeight: 600, border: '2px dashed #cbd5e1' }}>
+                محل قرارگیری نقشه تعاملی ایران
+              </div>
+            </motion.div>
+
           </div>
         </section>
-
-      </main>
+      </div>
     </>
   );
 }
