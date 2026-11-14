@@ -1,0 +1,53 @@
+@import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800;900&display=swap');
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { 
+  font-size: 16px; 
+  -webkit-font-smoothing: antialiased; 
+  scroll-behavior: initial; /* Lenis handles smooth scroll */
+}
+
+body { 
+  background: #050b14; /* Default dark background for hero */
+  color: #111111; 
+  font-family: 'Vazirmatn', sans-serif; 
+  overflow-x: hidden; 
+  direction: rtl; /* RTL Support */
+}
+
+a { color: inherit; text-decoration: none; }
+button { font: inherit; color: inherit; background: none; border: none; cursor: pointer; }
+ul { list-style: none; }
+img { display: block; }
+
+/* The rem-based adaptive grid (From Lumora Prompt) */
+@media (max-width: 1920px) { html { font-size: 0.833333vw; } }   /* base 1920 */
+@media (max-width: 1440px) { html { font-size: 1.111111vw; } }   /* base 1440 */
+@media (max-width: 1024px) { html { font-size: 1.5625vw; } }     /* base 1024 */
+@media (max-width: 640px)  { html { font-size: 4.444444vw; } }   /* base 360  */
+
+/* Lenis Recommended CSS */
+html.lenis, html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+.lenis.lenis-stopped body {
+  overflow: hidden;
+}
+
+/* Base Tokens */
+:root {
+  --bg-hero: #050b14;
+  --bg-canvas: #ffffff;
+  --accent-neon: #a3e635; /* Negin Green */
+  --ink: #0a0a0a;
+}
